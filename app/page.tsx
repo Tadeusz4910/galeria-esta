@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
+export const revalidate = 0
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -27,12 +29,10 @@ export default async function Home() {
     .order('nazwisko_i_imie')
 
   const now = new Date()
-
   const aktualna = wystawyAll?.find(w => new Date(w.data_od) <= now && new Date(w.data_do) >= now) || wystawyAll?.[0]
   const upcoming = wystawyAll?.find(w => new Date(w.data_od) > now)
   const pozostaleWystawy = wystawyAll?.filter(w =>
-    w.url_wystawy !== aktualna?.url_wystawy &&
-    w.url_wystawy !== upcoming?.url_wystawy
+    w.url_wystawy !== aktualna?.url_wystawy && w.url_wystawy !== upcoming?.url_wystawy
   ).slice(0, 4) || []
 
   const aktualneTargi = targiAll?.[0]
@@ -50,8 +50,9 @@ export default async function Home() {
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         a{text-decoration:none;color:inherit;}
-        .nav-link{font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.5;transition:opacity .2s;}
+        .nav-link{font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#111;opacity:.5;transition:opacity .2s;}
         .nav-link:hover{opacity:1;}
+        .nav-link-active{opacity:1;}
         .card-img{transition:transform .8s cubic-bezier(.25,.46,.45,.94);}
         .card-hover:hover .card-img{transform:scale(1.03);}
         .artist-link{font-family:"Cormorant Garamond",Georgia,serif;display:block;font-size:17px;font-weight:400;line-height:2.4;border-bottom:1px solid #ebebeb;}
@@ -62,11 +63,12 @@ export default async function Home() {
 
       {/* NAWIGACJA */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '54px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,.96)', borderBottom: '1px solid #ebebeb' }}>
-        <a href="/" style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase' }}>
-          Galeria ESTA
-        </a>
+        <a href="/" style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase' }}>Galeria ESTA</a>
         <div style={{ display: 'flex', gap: '28px' }}>
-          {['Artysci', 'Wystawy', 'Targi', 'Publikacje', 'Artykuly', 'Filmy', 'Oferta', 'Viewing Room', 'O nas'].map(item => (
+          <a href="/artysci" className="nav-link">Artysci</a>
+          <a href="/wystawy" className="nav-link">Wystawy</a>
+          <a href="/targi" className="nav-link">Targi</a>
+          {['Publikacje', 'Artykuly', 'Filmy', 'Oferta', 'Viewing Room', 'O nas'].map(item => (
             <a key={item} href="#" className="nav-link">{item}</a>
           ))}
         </div>
@@ -78,41 +80,62 @@ export default async function Home() {
         <img src={aktualna?.img_plakat || ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       </section>
 
-      {/* AKTUALNA WYSTAWA – tekst lewo, zdjecie prawo */}
-      <section style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', minHeight: '80vh', borderTop: '1px solid #ebebeb' }}>
-        <div style={{ padding: '72px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid #ebebeb' }}>
-          <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Aktualna wystawa</p>
-          <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>{aktualna?.artysci_txt || ''}</h2>
-          <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>{aktualna?.tytul || ''}</p>
-          <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>{fmtDate(aktualna?.data_od || null)} &ndash; {fmtDate(aktualna?.data_do || null)}</p>
-          <p style={{ fontFamily: I, fontSize: '13px', fontWeight: 600, marginBottom: '32px' }}>{aktualna?.miejsce || 'Galeria ESTA, Gliwice'}</p>
-          {aktualna?.opis_krotki && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginBottom: '40px' }}>{aktualna.opis_krotki}</p>}
-          <a href={`/wystawa/${aktualna?.url_wystawy || ''}`} className="arrow-link">&rarr; Wiecej o wystawie</a>
-        </div>
-        <div style={{ overflow: 'hidden' }}>
-          <img src={aktualna?.img_plakat || ''} alt={aktualna?.tytul || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      {/* AKTUALNA WYSTAWA – z marginesem jak White Cube */}
+      <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '64px', alignItems: 'start' }}>
+          <div>
+            <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
+              Aktualna wystawa
+            </p>
+            <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>
+              {aktualna?.artysci_txt || ''}
+            </h2>
+            <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>
+              {aktualna?.tytul || ''}
+            </p>
+            <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>
+              {fmtDate(aktualna?.data_od || null)} &ndash; {fmtDate(aktualna?.data_do || null)}
+            </p>
+            <p style={{ fontFamily: I, fontSize: '13px', fontWeight: 600, marginBottom: '32px' }}>
+              {aktualna?.miejsce || 'Galeria ESTA, Gliwice'}
+            </p>
+            {aktualna?.opis_krotki && (
+              <p style={{ fontFamily: I, fontSize: '13px', color: '#444', lineHeight: 1.9, marginBottom: '40px' }}>
+                {aktualna.opis_krotki}
+              </p>
+            )}
+            <a href={`/wystawa/${aktualna?.url_wystawy || ''}`} className="arrow-link">&rarr; Wiecej o wystawie</a>
+          </div>
+          {/* Zdjecie z marginesem */}
+          <div style={{ overflow: 'hidden' }}>
+            <img src={aktualna?.img_plakat || ''} alt={aktualna?.tytul || ''} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
+          </div>
         </div>
       </section>
 
-      {/* UPCOMING – zdjecie lewo, tekst prawo */}
+      {/* UPCOMING */}
       {upcoming && (
-        <section style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', minHeight: '80vh', borderTop: '1px solid #ebebeb' }}>
-          <div style={{ overflow: 'hidden' }}>
-            <img src={upcoming.img_plakat || ''} alt={upcoming.tytul || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          </div>
-          <div style={{ padding: '72px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderLeft: '1px solid #ebebeb' }}>
-            <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Upcoming</p>
-            <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>{upcoming.artysci_txt || ''}</h2>
-            <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>{upcoming.tytul || ''}</p>
-            <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>{fmtDate(upcoming.data_od)} &ndash; {fmtDate(upcoming.data_do)}</p>
-            <p style={{ fontFamily: I, fontSize: '13px', fontWeight: 600, marginBottom: '32px' }}>{upcoming.miejsce || 'Galeria ESTA, Gliwice'}</p>
-            {upcoming.opis_krotki && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginBottom: '40px' }}>{upcoming.opis_krotki}</p>}
-            <a href={`/wystawa/${upcoming.url_wystawy}`} className="arrow-link">&rarr; Wiecej o wystawie</a>
+        <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '64px', alignItems: 'start' }}>
+            <div style={{ overflow: 'hidden' }}>
+              <img src={upcoming.img_plakat || ''} alt={upcoming.tytul || ''} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
+            </div>
+            <div>
+              <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
+                Upcoming
+              </p>
+              <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>{upcoming.artysci_txt}</h2>
+              <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>{upcoming.tytul}</p>
+              <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>{fmtDate(upcoming.data_od)} &ndash; {fmtDate(upcoming.data_do)}</p>
+              <p style={{ fontFamily: I, fontSize: '13px', fontWeight: 600, marginBottom: '32px' }}>{upcoming.miejsce || 'Galeria ESTA, Gliwice'}</p>
+              {upcoming.opis_krotki && <p style={{ fontFamily: I, fontSize: '13px', color: '#444', lineHeight: 1.9, marginBottom: '40px' }}>{upcoming.opis_krotki}</p>}
+              <a href={`/wystawa/${upcoming.url_wystawy}`} className="arrow-link">&rarr; Wiecej o wystawie</a>
+            </div>
           </div>
         </section>
       )}
 
-      {/* POZOSTALE WYSTAWY – siatka 2 kolumny */}
+      {/* POZOSTALE WYSTAWY */}
       <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '56px' }}>
           <h2 style={{ fontFamily: C, fontSize: '28px', fontWeight: 400 }}>Wystawy</h2>
@@ -124,43 +147,43 @@ export default async function Home() {
               <div style={{ overflow: 'hidden', marginBottom: '24px' }}>
                 <img src={w.img_plakat || ''} alt={w.tytul || ''} className="card-img" style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'start', marginBottom: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'start' }}>
                 <div>
                   <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, marginBottom: '2px', lineHeight: 1.2 }}>{w.artysci_txt}</p>
                   <p style={{ fontFamily: C, fontSize: '17px', fontWeight: 300, fontStyle: 'italic', color: '#666', lineHeight: 1.3 }}>{w.tytul}</p>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontFamily: I, fontSize: '11px', color: '#999', whiteSpace: 'nowrap', lineHeight: 1.8 }}>
-                    {w.data_od ? new Date(w.data_od).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' }) : ''}<br />
-                    {w.data_do ? new Date(w.data_do).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
-                  </p>
-                </div>
+                <p style={{ fontFamily: I, fontSize: '11px', color: '#999', whiteSpace: 'nowrap', lineHeight: 1.8, textAlign: 'right' }}>
+                  {w.data_od ? new Date(w.data_od).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' }) : ''}<br />
+                  {w.data_do ? new Date(w.data_do).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+                </p>
               </div>
-              {w.opis_krotki && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginBottom: '16px' }}>{w.opis_krotki}</p>}
-              <span className="arrow-link">&rarr; Wiecej</span>
             </a>
           ))}
         </div>
       </section>
 
-      {/* AKTUALNE TARGI – tekst lewo, zdjecie prawo */}
-      <section style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', minHeight: '70vh', borderTop: '1px solid #ebebeb', background: '#faf9f7' }}>
-        <div style={{ padding: '72px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid #ebebeb' }}>
-          <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Ostatnie targi</p>
-          <h2 style={{ fontFamily: C, fontSize: 'clamp(24px,2.5vw,40px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>{aktualneTargi?.nazwa || ''}</h2>
-          <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px', marginTop: '24px' }}>{fmtDate(aktualneTargi?.data_od || null)} &ndash; {fmtDate(aktualneTargi?.data_do || null)}</p>
-          {aktualneTargi?.artysci_txt && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginBottom: '40px', marginTop: '8px' }}>{aktualneTargi.artysci_txt}</p>}
-          <a href={`/targ/${aktualneTargi?.url_targu || ''}`} className="arrow-link">&rarr; Wiecej o targach</a>
-        </div>
-        <div style={{ overflow: 'hidden' }}>
-          {aktualneTargi?.img_cover
-            ? <img src={aktualneTargi.img_cover} alt={aktualneTargi.nazwa || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            : <div style={{ width: '100%', height: '100%', background: '#e8e4de' }} />
-          }
+      {/* AKTUALNE TARGI */}
+      <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb', background: '#faf9f7' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '64px', alignItems: 'start' }}>
+          <div>
+            <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
+              Ostatnie targi
+            </p>
+            <h2 style={{ fontFamily: C, fontSize: 'clamp(24px,2.5vw,40px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '24px' }}>{aktualneTargi?.nazwa || ''}</h2>
+            <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>{fmtDate(aktualneTargi?.data_od || null)} &ndash; {fmtDate(aktualneTargi?.data_do || null)}</p>
+            {aktualneTargi?.artysci_txt && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginTop: '8px', marginBottom: '40px' }}>{aktualneTargi.artysci_txt}</p>}
+            <a href={`/targ/${aktualneTargi?.url_targu || ''}`} className="arrow-link">&rarr; Wiecej o targach</a>
+          </div>
+          <div style={{ overflow: 'hidden' }}>
+            {aktualneTargi?.img_cover
+              ? <img src={aktualneTargi.img_cover} alt={aktualneTargi.nazwa || ''} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
+              : <div style={{ aspectRatio: '4/3', background: '#e8e4de' }} />
+            }
+          </div>
         </div>
       </section>
 
-      {/* POZOSTALE TARGI – siatka 2 kolumny */}
+      {/* POZOSTALE TARGI */}
       <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb', background: '#faf9f7' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '56px' }}>
           <h2 style={{ fontFamily: C, fontSize: '28px', fontWeight: 400 }}>Targi</h2>
@@ -175,15 +198,14 @@ export default async function Home() {
                   : <div style={{ aspectRatio: '4/3', background: '#e0ddd8' }} />
                 }
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'start', marginBottom: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'start' }}>
                 <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2 }}>{t.nazwa}</p>
                 <p style={{ fontFamily: I, fontSize: '11px', color: '#999', whiteSpace: 'nowrap', lineHeight: 1.8, textAlign: 'right' }}>
                   {t.data_od ? new Date(t.data_od).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' }) : ''}<br />
                   {t.data_do ? new Date(t.data_do).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
                 </p>
               </div>
-              {t.artysci_txt && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginBottom: '16px' }}>{t.artysci_txt}</p>}
-              <span className="arrow-link">&rarr; Wiecej</span>
+              {t.artysci_txt && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginTop: '8px' }}>{t.artysci_txt}</p>}
             </a>
           ))}
         </div>
