@@ -4,7 +4,7 @@ import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500"],
   style: ["normal", "italic"],
   variable: "--font-cormorant",
   display: "swap",
@@ -18,9 +18,8 @@ const instrument = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Galeria ESTA | Sztuka Współczesna | Gliwice",
-  description:
-    "Galeria Sztuki Współczesnej ESTA w Gliwicach. 28 lat prezentacji najważniejszych zjawisk sztuki współczesnej w Polsce.",
+  title: "Galeria ESTA | Sztuka Wspolczesna | Gliwice",
+  description: "Galeria Sztuki Wspolczesnej ESTA w Gliwicach. Od 1998 roku.",
 };
 
 export default function RootLayout({
