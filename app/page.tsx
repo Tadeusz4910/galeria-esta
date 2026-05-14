@@ -93,14 +93,14 @@ export default async function Home() {
             <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>
               {aktualna?.tytul || ''}
             </p>
-            <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>
+            <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, marginBottom: '4px' }}>
               {fmtDate(aktualna?.data_od || null)} &ndash; {fmtDate(aktualna?.data_do || null)}
             </p>
-            <p style={{ fontFamily: I, fontSize: '13px', fontWeight: 600, marginBottom: '32px' }}>
+            <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 500, marginBottom: '32px' }}>
               {aktualna?.miejsce || 'Galeria ESTA, Gliwice'}
             </p>
             {aktualna?.opis_krotki && (
-              <p style={{ fontFamily: I, fontSize: '13px', color: '#444', lineHeight: 1.9, marginBottom: '40px' }}>
+              <p style={{ fontFamily: C, fontSize: '17px', fontWeight: 300, color: '#444', lineHeight: 1.7, marginBottom: '40px' }}>
                 {aktualna.opis_krotki}
               </p>
             )}
@@ -170,8 +170,8 @@ export default async function Home() {
               Ostatnie targi
             </p>
             <h2 style={{ fontFamily: C, fontSize: 'clamp(24px,2.5vw,40px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '24px' }}>{aktualneTargi?.nazwa || ''}</h2>
-            <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>{fmtDate(aktualneTargi?.data_od || null)} &ndash; {fmtDate(aktualneTargi?.data_do || null)}</p>
-            {aktualneTargi?.artysci_txt && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginTop: '8px', marginBottom: '40px' }}>{aktualneTargi.artysci_txt}</p>}
+            <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, marginBottom: '4px' }}>{fmtDate(aktualneTargi?.data_od || null)} &ndash; {fmtDate(aktualneTargi?.data_do || null)}</p>
+            {aktualneTargi?.artysci_txt && <p style={{ fontFamily: C, fontSize: '17px', fontWeight: 300, color: '#555', lineHeight: 1.7, marginTop: '8px', marginBottom: '40px' }}>{aktualneTargi.artysci_txt}</p>}
             <a href={`/targ/${aktualneTargi?.url_targu || ''}`} className="arrow-link">&rarr; Wiecej o targach</a>
           </div>
           <div style={{ overflow: 'hidden' }}>
