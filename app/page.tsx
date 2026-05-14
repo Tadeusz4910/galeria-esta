@@ -81,7 +81,7 @@ export default async function Home() {
       {/* AKTUALNA WYSTAWA – tekst lewo, zdjecie prawo */}
       <section style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', minHeight: '80vh', borderTop: '1px solid #ebebeb' }}>
         <div style={{ padding: '72px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid #ebebeb' }}>
-          <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Aktualna wystawa</p>
+          <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Aktualna wystawa</p>
           <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>{aktualna?.artysci_txt || ''}</h2>
           <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>{aktualna?.tytul || ''}</p>
           <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>{fmtDate(aktualna?.data_od || null)} &ndash; {fmtDate(aktualna?.data_do || null)}</p>
@@ -101,7 +101,7 @@ export default async function Home() {
             <img src={upcoming.img_plakat || ''} alt={upcoming.tytul || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
           <div style={{ padding: '72px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderLeft: '1px solid #ebebeb' }}>
-            <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Upcoming</p>
+            <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Upcoming</p>
             <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>{upcoming.artysci_txt || ''}</h2>
             <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>{upcoming.tytul || ''}</p>
             <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>{fmtDate(upcoming.data_od)} &ndash; {fmtDate(upcoming.data_do)}</p>
@@ -146,7 +146,7 @@ export default async function Home() {
       {/* AKTUALNE TARGI – tekst lewo, zdjecie prawo */}
       <section style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', minHeight: '70vh', borderTop: '1px solid #ebebeb', background: '#faf9f7' }}>
         <div style={{ padding: '72px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid #ebebeb' }}>
-          <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Ostatnie targi</p>
+          <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '36px' }}>Ostatnie targi</p>
           <h2 style={{ fontFamily: C, fontSize: 'clamp(24px,2.5vw,40px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>{aktualneTargi?.nazwa || ''}</h2>
           <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px', marginTop: '24px' }}>{fmtDate(aktualneTargi?.data_od || null)} &ndash; {fmtDate(aktualneTargi?.data_do || null)}</p>
           {aktualneTargi?.artysci_txt && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginBottom: '40px', marginTop: '8px' }}>{aktualneTargi.artysci_txt}</p>}
