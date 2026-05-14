@@ -96,11 +96,11 @@ export default async function Home() {
             <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, marginBottom: '4px' }}>
               {fmtDate(aktualna?.data_od || null)} &ndash; {fmtDate(aktualna?.data_do || null)}
             </p>
-            <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 500, marginBottom: '32px' }}>
+            <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, marginBottom: '32px' }}>
               {aktualna?.miejsce || 'Galeria ESTA, Gliwice'}
             </p>
             {aktualna?.opis_krotki && (
-              <p style={{ fontFamily: C, fontSize: '17px', fontWeight: 300, color: '#444', lineHeight: 1.7, marginBottom: '40px' }}>
+              <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 300, color: '#444', lineHeight: 1.5, marginBottom: '40px' }}>
                 {aktualna.opis_krotki}
               </p>
             )}
