@@ -11,7 +11,7 @@ export default async function Home() {
     .select('tytul, artysci_txt, data_od, data_do, url_wystawy, img_plakat')
     .not('tytul', 'is', null)
     .order('data_od', { ascending: false })
-    .limit(3)
+    .limit(4)
 
   const { data: targi } = await supabase
     .from('targi')
@@ -26,181 +26,197 @@ export default async function Home() {
     .eq('status_w_galerii', 'aktywny')
     .order('nazwisko_i_imie')
 
+  const hero = wystawy?.[0]
+  const pozostale = wystawy?.slice(1) || []
+
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Instrument+Sans:wght@400;500;600&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{background:#fff;font-family:Georgia,serif;}
-        .nw{color:#fff;text-decoration:none;font-size:11px;letter-spacing:.13em;text-transform:uppercase;opacity:.7;transition:opacity .2s;}
-        .nw:hover{opacity:1;}
-        .nb{color:#111;text-decoration:none;font-size:11px;letter-spacing:.13em;text-transform:uppercase;opacity:.5;transition:opacity .2s;}
-        .nb:hover{opacity:1;}
-        .ch img{transition:transform .6s ease;}
-        .ch:hover img{transform:scale(1.04);}
-        .al{color:#111;text-decoration:none;font-size:13px;line-height:2.3;display:block;}
-        .al:hover{opacity:.5;}
-        .lbl{font-family:sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#999;}
+        body{background:#fff;color:#111;font-family:'Instrument Sans',sans-serif;}
+        a{text-decoration:none;color:inherit;}
+        .nav-link{font-family:'Instrument Sans',sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.5;transition:opacity .2s;}
+        .nav-link:hover{opacity:1;}
+        .nav-link-white{font-family:'Instrument Sans',sans-serif;color:#fff;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.65;transition:opacity .2s;}
+        .nav-link-white:hover{opacity:1;}
+        .card-hover:hover .card-img{transform:scale(1.03);}
+        .card-img{transition:transform .8s cubic-bezier(.25,.46,.45,.94);}
+        .artist-link{font-family:'Cormorant+Garamond',Georgia,serif;display:block;font-size:16px;font-weight:400;line-height:2.4;border-bottom:1px solid #ebebeb;}
+        .artist-link:hover{opacity:.4;}
       `}</style>
 
-      <main>
-        {/* NAW */}
-        <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,padding:"0 40px",height:"54px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <a href="/" style={{fontFamily:"Georgia,serif",fontSize:"15px",letterSpacing:".16em",color:"#fff",textDecoration:"none"}}>GALERIA ESTA</a>
-          <div style={{display:"flex",gap:"24px"}}>
-            {["Artysci","Wystawy","Targi","Publikacje","Artykuly","Filmy","Oferta","Viewing Room","O nas"].map(item => (
-              <a key={item} href="#" className="nw">{item}</a>
+      <main style={{background:'#fff'}}>
+
+        {/* NAWIGACJA */}
+        <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'0 40px',height:'54px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <a href="/" style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'16px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase',color:'#fff'}}>
+            Galeria ESTA
+          </a>
+          <div style={{display:'flex',gap:'28px'}}>
+            {['Artysci','Wystawy','Targi','Publikacje','Artykuly','Filmy','Oferta','Viewing Room','O nas'].map(item => (
+              <a key={item} href="#" className="nav-link-white">{item}</a>
             ))}
           </div>
-          <a href="#" className="nw" style={{fontSize:"10px"}}>PL / EN</a>
+          <a href="#" className="nav-link-white" style={{fontSize:'10px'}}>PL / EN</a>
         </nav>
 
         {/* HERO */}
-        <section style={{position:"relative",height:"100vh",overflow:"hidden"}}>
-          <img
-            src={wystawy?.[0]?.img_plakat || "https://galeria-esta.pl/pliki/wystawy/plakat/185/ESTA_WGW2025_SM_FB_COVER_FP_1640x720.jpg"}
-            alt="Aktualna wystawa"
-            style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
-          />
-          <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 50%,transparent 100%)"}} />
-          <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"48px 40px",display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
-            <div>
-              <p className="lbl" style={{color:"rgba(255,255,255,.55)",marginBottom:"12px"}}>
-                Aktualna wystawa &middot; {wystawy?.[0]?.data_od ? new Date(wystawy[0].data_od).toLocaleDateString('pl-PL', {day:'numeric',month:'long',year:'numeric'}) : ''}
-              </p>
-              <h1 style={{fontSize:"clamp(24px,3.5vw,46px)",fontWeight:400,color:"#fff",lineHeight:1.25,maxWidth:"600px"}}>
-                {wystawy?.[0]?.artysci_txt || ''}<br />
-                <em style={{opacity:.8,fontSize:".88em"}}>{wystawy?.[0]?.tytul || ''}</em>
-              </h1>
-            </div>
-            <a href={`/wystawa/${wystawy?.[0]?.url_wystawy || ''}`} style={{display:"inline-block",padding:"11px 26px",border:"1px solid rgba(255,255,255,.45)",color:"#fff",fontFamily:"sans-serif",fontSize:"10px",letterSpacing:".18em",textTransform:"uppercase",textDecoration:"none",whiteSpace:"nowrap"}}>
-              Zobacz wystawe
+        <section style={{position:'relative',height:'100vh',overflow:'hidden',background:'#000'}}>
+          {hero?.img_plakat && (
+            <img
+              src={hero.img_plakat}
+              alt={hero.tytul || ''}
+              style={{width:'100%',height:'100%',objectFit:'cover',display:'block',opacity:.85}}
+            />
+          )}
+          <div style={{position:'absolute',inset:0,background:'linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.18) 45%,transparent 100%)'}} />
+          <div style={{position:'absolute',bottom:0,left:0,right:0,padding:'56px 40px'}}>
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.22em',textTransform:'uppercase',color:'rgba(255,255,255,.45)',marginBottom:'18px'}}>
+              Aktualna wystawa
+            </p>
+            <p style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'clamp(40px,5.5vw,80px)',fontWeight:400,color:'#fff',lineHeight:1.0,marginBottom:'10px',letterSpacing:'-.01em'}}>
+              {hero?.artysci_txt || ''}
+            </p>
+            <p style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'clamp(22px,3vw,44px)',fontWeight:300,fontStyle:'italic',color:'rgba(255,255,255,.65)',marginBottom:'36px'}}>
+              {hero?.tytul || ''}
+            </p>
+            <a href={`/wystawa/${hero?.url_wystawy || ''}`} style={{display:'inline-block',padding:'12px 32px',border:'1px solid rgba(255,255,255,.35)',color:'#fff',fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase'}}>
+              Wiecej
             </a>
           </div>
         </section>
 
         {/* WYSTAWY */}
-        <section style={{padding:"72px 40px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"36px"}}>
-            <h2 style={{fontSize:"22px",fontWeight:400,color:"#111"}}>Wystawy</h2>
-            <a href="/wystawy" className="nb">Archiwum wystaw &rarr;</a>
+        <section style={{padding:'96px 40px 80px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'48px',borderBottom:'1px solid #e8e8e8',paddingBottom:'14px'}}>
+            <h2 style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'20px',fontWeight:400,letterSpacing:'.06em'}}>Wystawy</h2>
+            <a href="/wystawy" className="nav-link">Wszystkie wystawy</a>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"28px"}}>
-            {(wystawy || []).map((w, i) => (
-              <a key={i} href={`/wystawa/${w.url_wystawy}`} className="ch" style={{cursor:"pointer",textDecoration:"none"}}>
-                <div style={{overflow:"hidden",marginBottom:"14px"}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'2px',background:'#e8e8e8'}}>
+            {pozostale.map((w, i) => (
+              <a key={i} href={`/wystawa/${w.url_wystawy}`} className="card-hover" style={{display:'block',background:'#fff',overflow:'hidden'}}>
+                <div style={{overflow:'hidden',aspectRatio:'4/3'}}>
                   <img
-                    src={w.img_plakat || "https://galeria-esta.pl/images/wystawa.png"}
+                    src={w.img_plakat || ''}
                     alt={w.tytul || ''}
-                    style={{width:"100%",height:"260px",objectFit:"cover",display:"block"}}
+                    className="card-img"
+                    style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}
                   />
                 </div>
-                <p className="lbl" style={{marginBottom:"6px"}}>
-                  {w.data_od ? new Date(w.data_od).toLocaleDateString('pl-PL',{day:'numeric',month:'long'}) : ''} &mdash; {w.data_do ? new Date(w.data_do).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'}) : ''}
-                </p>
-                <p style={{fontSize:"16px",color:"#111",marginBottom:"3px"}}>{w.artysci_txt || ''}</p>
-                <p style={{fontSize:"14px",fontStyle:"italic",color:"#666"}}>{w.tytul || ''}</p>
+                <div style={{padding:'20px 24px 28px'}}>
+                  <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase',color:'#999',marginBottom:'8px'}}>
+                    {w.data_od ? new Date(w.data_od).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'}) : ''}
+                  </p>
+                  <p style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'18px',fontWeight:400,color:'#111',marginBottom:'4px',lineHeight:1.3}}>{w.artysci_txt}</p>
+                  <p style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'15px',fontWeight:300,fontStyle:'italic',color:'#666',lineHeight:1.4}}>{w.tytul}</p>
+                </div>
               </a>
             ))}
           </div>
         </section>
-
-        <hr style={{border:"none",borderTop:"1px solid #e5e5e5",margin:"0 40px"}} />
-
-        {/* TARGI */}
-        <section style={{padding:"72px 40px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"36px"}}>
-            <h2 style={{fontSize:"22px",fontWeight:400,color:"#111"}}>Targi</h2>
-            <a href="/targi" className="nb">Wszystkie targi &rarr;</a>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"28px"}}>
-            {(targi || []).map((t, i) => (
-              <a key={i} href={`/targ/${t.url_targu}`} className="ch" style={{cursor:"pointer",textDecoration:"none"}}>
-                <div style={{overflow:"hidden",marginBottom:"14px"}}>
-                  <img
-                    src={t.img_cover || "https://galeria-esta.pl/images/wystawa.png"}
-                    alt={t.nazwa || ''}
-                    style={{width:"100%",height:"220px",objectFit:"cover",display:"block"}}
-                  />
-                </div>
-                <p className="lbl" style={{marginBottom:"6px"}}>
-                  {t.data_od ? new Date(t.data_od).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'}) : ''}
-                </p>
-                <p style={{fontSize:"16px",color:"#111",marginBottom:"3px"}}>{t.nazwa || ''}</p>
-                {t.artysci_txt && <p style={{fontSize:"13px",color:"#888",fontStyle:"italic"}}>{t.artysci_txt}</p>}
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <hr style={{border:"none",borderTop:"1px solid #e5e5e5",margin:"0 40px"}} />
 
         {/* ARTYSCI */}
-        <section style={{padding:"72px 40px",background:"#faf9f7"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"40px"}}>
-            <h2 style={{fontSize:"22px",fontWeight:400,color:"#111"}}>Artysci</h2>
-            <a href="/artysci" className="nb">Wszyscy artysci &rarr;</a>
+        <section style={{padding:'0 40px 96px',display:'grid',gridTemplateColumns:'1fr 2fr',gap:'80px',alignItems:'start'}}>
+          <div style={{borderTop:'1px solid #e8e8e8',paddingTop:'14px'}}>
+            <h2 style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'20px',fontWeight:400,letterSpacing:'.06em'}}>Artysci</h2>
           </div>
-          <div style={{columns:"4",columnGap:"32px"}}>
-            {(artysci || []).map(a => (
-              <a key={a.url_artysty || a.nazwisko_i_imie} href={`/${a.url_artysty || '#'}`} className="al">
-                {a.nazwisko_i_imie}
+          <div style={{borderTop:'1px solid #e8e8e8',paddingTop:'0'}}>
+            <div style={{columns:'2',columnGap:'40px'}}>
+              {(artysci || []).map(a => (
+                <a key={a.url_artysty || a.nazwisko_i_imie} href={`/${a.url_artysty || '#'}`} className="artist-link">
+                  {a.nazwisko_i_imie}
+                </a>
+              ))}
+            </div>
+            <div style={{marginTop:'28px'}}>
+              <a href="/artysci" className="nav-link">Wszyscy artysci</a>
+            </div>
+          </div>
+        </section>
+
+        {/* TARGI */}
+        <section style={{padding:'80px 40px',background:'#f8f8f6'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'48px',borderBottom:'1px solid #ddd',paddingBottom:'14px'}}>
+            <h2 style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'20px',fontWeight:400,letterSpacing:'.06em'}}>Targi</h2>
+            <a href="/targi" className="nav-link">Wszystkie targi</a>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'40px'}}>
+            {(targi || []).map((t, i) => (
+              <a key={i} href={`/targ/${t.url_targu}`} className="card-hover" style={{display:'block'}}>
+                <div style={{overflow:'hidden',aspectRatio:'3/2',marginBottom:'16px',background:'#e8e8e8'}}>
+                  {t.img_cover && (
+                    <img
+                      src={t.img_cover}
+                      alt={t.nazwa || ''}
+                      className="card-img"
+                      style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}
+                    />
+                  )}
+                </div>
+                <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase',color:'#999',marginBottom:'6px'}}>
+                  {t.data_od ? new Date(t.data_od).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'}) : ''}
+                </p>
+                <p style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'18px',fontWeight:400,color:'#111',marginBottom:'4px'}}>{t.nazwa}</p>
+                {t.artysci_txt && <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'12px',color:'#888'}}>{t.artysci_txt}</p>}
               </a>
             ))}
           </div>
         </section>
 
         {/* VIEWING ROOM */}
-        <section style={{padding:"72px 40px",background:"#111",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"80px",alignItems:"center"}}>
+        <section style={{background:'#111',padding:'96px 40px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'96px',alignItems:'center'}}>
           <div>
-            <p className="lbl" style={{color:"#555",marginBottom:"20px"}}>Nowa usluga</p>
-            <h2 style={{fontSize:"clamp(28px,3vw,44px)",fontWeight:400,color:"#fff",lineHeight:1.2,marginBottom:"24px"}}>
-              Viewing Room &mdash;<br />
-              <em style={{color:"#888"}}>oferty indywidualne</em>
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',color:'#555',marginBottom:'24px'}}>Oferty indywidualne</p>
+            <h2 style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'clamp(36px,4.5vw,64px)',fontWeight:400,color:'#fff',lineHeight:1.05,marginBottom:'28px'}}>
+              Viewing<br/>
+              <em style={{color:'#666',fontWeight:300}}>Room</em>
             </h2>
-            <p style={{fontFamily:"sans-serif",fontSize:"13px",color:"#888",lineHeight:1.9,marginBottom:"36px",maxWidth:"420px"}}>
-              Prywatne pokazy wyselekcjonowanych prac dla kolekcjonerow. Kazda oferta tworzona indywidualnie.
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'13px',color:'#777',lineHeight:1.9,marginBottom:'40px',maxWidth:'380px'}}>
+              Prywatne pokazy wyselekcjonowanych prac. Kazda oferta tworzona indywidualnie dla kolekcjonera.
             </p>
-            <a href="#" style={{display:"inline-block",padding:"12px 28px",border:"1px solid #444",color:"#fff",fontFamily:"sans-serif",fontSize:"10px",letterSpacing:".18em",textTransform:"uppercase",textDecoration:"none"}}>
+            <a href="#" style={{display:'inline-block',padding:'13px 32px',border:'1px solid #333',color:'#fff',fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase'}}>
               Zapytaj o oferte
             </a>
           </div>
-          <div style={{background:"#1a1a1a",height:"360px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <p style={{fontFamily:"Georgia,serif",fontSize:"13px",fontStyle:"italic",color:"#444"}}>Viewing Room &mdash; wkrotce</p>
+          <div style={{background:'#1a1a1a',aspectRatio:'4/3',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <p style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'13px',fontStyle:'italic',color:'#333'}}>Viewing Room — wkrotce</p>
           </div>
         </section>
 
         {/* FOOTER */}
-        <footer style={{background:"#0a0a0a",padding:"56px 40px",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:"40px"}}>
+        <footer style={{background:'#0a0a0a',padding:'64px 40px',display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:'48px',borderTop:'1px solid #1a1a1a'}}>
           <div>
-            <p style={{fontFamily:"Georgia,serif",fontSize:"17px",color:"#fff",marginBottom:"16px"}}>Galeria ESTA</p>
-            <p style={{fontFamily:"sans-serif",fontSize:"12px",lineHeight:2,color:"#666"}}>
-              Galeria Sztuki Wspolczesnej<br />
-              ul. Raciborska 8, Gliwice<br />
-              Od 1998 roku<br />
+            <p style={{fontFamily:'"Cormorant Garamond",Georgia,serif',fontSize:'18px',fontWeight:400,color:'#fff',letterSpacing:'.1em',marginBottom:'20px'}}>Galeria ESTA</p>
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'12px',lineHeight:2,color:'#555'}}>
+              ul. Raciborska 8<br/>
+              Gliwice, Polska<br/>
+              Od 1998 roku<br/>
               galeria@galeria-esta.pl
             </p>
           </div>
           <div>
-            <p className="lbl" style={{color:"#444",marginBottom:"16px"}}>Menu</p>
-            {["Artysci","Wystawy","Targi","Oferta","Viewing Room","O nas"].map(item => (
-              <a key={item} href="#" style={{display:"block",fontFamily:"sans-serif",fontSize:"12px",color:"#666",textDecoration:"none",lineHeight:2.2}}>{item}</a>
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase',color:'#333',marginBottom:'16px'}}>Menu</p>
+            {['Artysci','Wystawy','Targi','Oferta','Viewing Room','O nas'].map(item => (
+              <a key={item} href="#" style={{display:'block',fontFamily:'"Instrument Sans",sans-serif',fontSize:'12px',color:'#555',lineHeight:2.2}}>{item}</a>
             ))}
           </div>
           <div>
-            <p className="lbl" style={{color:"#444",marginBottom:"16px"}}>Godziny</p>
-            <p style={{fontFamily:"sans-serif",fontSize:"12px",lineHeight:2,color:"#666"}}>
-              Wt &mdash; Pt: 11:00 &mdash; 18:00<br />
-              Sob: 11:00 &mdash; 15:00<br />
-              Nd &mdash; Pn: zamkniete
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase',color:'#333',marginBottom:'16px'}}>Godziny</p>
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'12px',lineHeight:2,color:'#555'}}>
+              Wt — Pt: 11:00 — 18:00<br/>
+              Sob: 11:00 — 15:00<br/>
+              Nd — Pn: zamkniete
             </p>
           </div>
           <div>
-            <p className="lbl" style={{color:"#444",marginBottom:"16px"}}>Social</p>
-            <p style={{fontFamily:"sans-serif",fontSize:"12px",lineHeight:2.2,color:"#666"}}>
-              Instagram<br />Facebook
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase',color:'#333',marginBottom:'16px'}}>Social</p>
+            <p style={{fontFamily:'"Instrument Sans",sans-serif',fontSize:'12px',lineHeight:2.2,color:'#555'}}>
+              Instagram<br/>Facebook
             </p>
           </div>
         </footer>
+
       </main>
     </>
   )
