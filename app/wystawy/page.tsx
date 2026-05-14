@@ -45,7 +45,7 @@ export default async function WystawyPage() {
         <a href="/" style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase' }}>Galeria ESTA</a>
         <div style={{ display: 'flex', gap: '28px' }}>
           {['Artysci', 'Wystawy', 'Targi', 'Publikacje', 'Artykuly', 'Filmy', 'Oferta', 'Viewing Room', 'O nas'].map(item => (
-            <a key={item} href={item === 'Wystawy' ? '/wystawy' : '#'} className="nav-link" style={{ opacity: item === 'Wystawy' ? 1 : undefined }}>{item}</a>
+            <a key={item} href={item === 'Artysci' ? '/artysci' : item === 'Wystawy' ? '/wystawy' : item === 'Targi' ? '/targi' : '#'} className="nav-link" style={{ opacity: item === 'Wystawy' ? 1 : undefined }}>{item}</a>
           ))}
         </div>
         <a href="#" className="nav-link" style={{ fontSize: '10px' }}>PL / EN</a>
