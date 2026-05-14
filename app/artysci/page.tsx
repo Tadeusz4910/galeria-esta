@@ -64,7 +64,7 @@ export default async function ArtysciPage() {
           </p>
         </div>
         {aktywni.map((a, i) => (
-          <a key={i} href={`/${a.url_artysty || '#'}`} className="artist-row" style={rowStyle}>
+          <a key={i} href={`/artysta/${a.url_artysty || '#'}`} className="artist-row" style={rowStyle}>
             <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2 }}>{a.nazwisko_i_imie}</p>
             <p style={{ fontFamily: I, fontSize: '12px', color: '#888', alignSelf: 'center' }}>{a.dziedzina || ''}</p>
             <p style={{ fontFamily: I, fontSize: '12px', color: '#bbb', alignSelf: 'center', textAlign: 'right' }}>{a.kraj || ''}</p>
@@ -81,7 +81,7 @@ export default async function ArtysciPage() {
             </p>
           </div>
           {archiwum.map((a, i) => (
-            <a key={i} href={`/${a.url_artysty || '#'}`} className="artist-row" style={{ ...rowStyle }}>
+            <a key={i} href={`/artysta/${a.url_artysty || '#'}`} className="artist-row" style={{ ...rowStyle }}>
               <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2, color: '#666' }}>{a.nazwisko_i_imie}</p>
               <p style={{ fontFamily: I, fontSize: '12px', color: '#bbb', alignSelf: 'center' }}>{a.dziedzina || ''}</p>
               <p style={{ fontFamily: I, fontSize: '12px', color: '#ddd', alignSelf: 'center', textAlign: 'right' }}>{a.kraj || ''}</p>

@@ -197,7 +197,7 @@ export default async function Home() {
         </div>
         <div style={{ columns: '3', columnGap: '40px' }}>
           {(artysci || []).map(a => (
-            <a key={a.url_artysty || a.nazwisko_i_imie} href={`/${a.url_artysty || '#'}`} className="artist-link">
+            <a key={a.url_artysty || a.nazwisko_i_imie} href={`/artysta/${a.url_artysty || '#'}`} className="artist-link">
               {a.nazwisko_i_imie}
             </a>
           ))}
