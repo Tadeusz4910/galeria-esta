@@ -84,7 +84,7 @@ export default async function Home() {
       <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '64px', alignItems: 'start' }}>
           <div>
-            <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
+            <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
               Aktualna wystawa
             </p>
             <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>
@@ -166,7 +166,7 @@ export default async function Home() {
       <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb', background: '#faf9f7' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '64px', alignItems: 'start' }}>
           <div>
-            <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
+            <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
               Ostatnie targi
             </p>
             <h2 style={{ fontFamily: C, fontSize: 'clamp(24px,2.5vw,40px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '24px' }}>{aktualneTargi?.nazwa || ''}</h2>
