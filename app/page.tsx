@@ -38,8 +38,8 @@ export default async function Home() {
     ? new Date(d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
     : ''
 
-  const C = 'var(--font-cormorant), Georgia, serif'
-  const I = 'var(--font-instrument), sans-serif'
+  const C = '"Cormorant Garamond", Georgia, serif'
+  const I = '"Instrument Sans", sans-serif'
 
   return (
     <main style={{ background: '#fff', color: '#111' }}>
