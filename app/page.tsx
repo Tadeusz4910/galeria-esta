@@ -9,7 +9,7 @@ export default async function Home() {
   const { data: wystawy } = await supabase
     .from('wystawy')
     .select('tytul, artysci_txt, data_od, data_do, url_wystawy, img_plakat')
-    .eq('publiczna', true)
+    .not('tytul', 'is', null)
     .order('data_od', { ascending: false })
     .limit(3)
 
