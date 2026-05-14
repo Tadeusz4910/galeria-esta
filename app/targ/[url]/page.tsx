@@ -154,7 +154,7 @@ export default async function TargPage({ params }: { params: Promise<{ url: stri
             Zainteresowany<br/>pracami z tych targow?
           </h2>
           <p style={{ fontFamily:C,fontSize:'16px',fontWeight:300,color:'#555',lineHeight:1.7,marginBottom:'40px' }}>
-            Skontaktuj sie z nami – cheÅ‚tnie opowiemy o prezentowanych pracach i artystach.
+            Skontaktuj sie z nami – chetnie opowiemy o prezentowanych pracach i artystach.
           </p>
           <a href="mailto:galeria@galeria-esta.pl" className="arrow-link">&rarr; galeria@galeria-esta.pl</a>
         </div>
