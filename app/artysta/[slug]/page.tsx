@@ -6,11 +6,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export default async function ArtystaPage({ params }: { params: { artysta: string } }) {
+export default async function ArtystaPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const { data: artysci } = await supabase
     .from('artysci')
     .select('*')
-    .eq('url_artysty', params.artysta)
+    .eq('url_artysty', slug)
     .limit(1)
 
   const artysta = artysci?.[0]
