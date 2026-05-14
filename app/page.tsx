@@ -23,7 +23,7 @@ export default async function Home() {
   const { data: artysci } = await supabase
     .from('artysci')
     .select('nazwisko_i_imie, url_artysty')
-    .eq('status_w_galerii', 'aktywny')
+    .eq('widocznosc_strona', 'aktywny')
     .order('nazwisko_i_imie')
 
   const now = new Date()

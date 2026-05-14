@@ -8,13 +8,12 @@ const supabase = createClient(
 export default async function ArtysciPage() {
   const { data: artysci } = await supabase
     .from('artysci')
-    .select('nazwisko_i_imie, url_artysty, kraj, dziedzina, status_w_galerii')
-    .not('status_w_galerii', 'is', null)
+    .select('nazwisko_i_imie, url_artysty, kraj, dziedzina, widocznosc_strona')
+    .in('widocznosc_strona', ['aktywny', 'archiwum'])
     .order('nazwisko_i_imie')
 
-  const reprezentowani = artysci?.filter(a => a.status_w_galerii === 'reprezentowany') || []
-  const wspolpracujacy = artysci?.filter(a => a.status_w_galerii === 'wspolpracujacy') || []
-  const kolekcja = artysci?.filter(a => a.status_w_galerii === 'w kolekcji') || []
+  const aktywni = artysci?.filter(a => a.widocznosc_strona === 'aktywny') || []
+  const archiwum = artysci?.filter(a => a.widocznosc_strona === 'archiwum') || []
 
   const C = '"Cormorant Garamond", Georgia, serif'
   const I = '"Instrument Sans", sans-serif'
@@ -24,17 +23,9 @@ export default async function ArtysciPage() {
     gridTemplateColumns: '1fr 1fr 1fr',
     borderBottom: '1px solid #ebebeb',
     padding: '20px 0',
-    textDecoration: 'none',
-    color: 'inherit',
+    textDecoration: 'none' as const,
+    color: 'inherit' as const,
   }
-
-  const sectionLabel = (label: string, count: number, strong = false) => (
-    <div style={{ borderBottom: strong ? '2px solid #111' : '1px solid #ebebeb', paddingBottom: '12px', marginBottom: '0' }}>
-      <p style={{ fontFamily: I, fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase' as const, color: '#999' }}>
-        {label} &mdash; {count}
-      </p>
-    </div>
-  )
 
   return (
     <main style={{ background: '#fff', color: '#111' }}>
@@ -61,44 +52,36 @@ export default async function ArtysciPage() {
       <section style={{ paddingTop: '120px', padding: '120px 40px 64px', borderBottom: '1px solid #ebebeb' }}>
         <h1 style={{ fontFamily: C, fontSize: 'clamp(48px,6vw,88px)', fontWeight: 400, lineHeight: 1.0 }}>Artysci</h1>
         <p style={{ fontFamily: I, fontSize: '13px', color: '#888', marginTop: '16px' }}>
-          {reprezentowani.length + wspolpracujacy.length + kolekcja.length} artystow
+          {aktywni.length} artystow
         </p>
       </section>
 
-      {/* REPREZENTOWANI */}
-      {reprezentowani.length > 0 && (
-        <section style={{ padding: '64px 40px 0' }}>
-          {sectionLabel('Reprezentowani', reprezentowani.length, true)}
-          {reprezentowani.map((a, i) => (
-            <a key={i} href={`/${a.url_artysty || '#'}`} className="artist-row" style={rowStyle}>
-              <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2 }}>{a.nazwisko_i_imie}</p>
-              <p style={{ fontFamily: I, fontSize: '12px', color: '#888', alignSelf: 'center' }}>{a.dziedzina || ''}</p>
-              <p style={{ fontFamily: I, fontSize: '12px', color: '#bbb', alignSelf: 'center', textAlign: 'right' }}>{a.kraj || ''}</p>
-            </a>
-          ))}
-        </section>
-      )}
+      {/* AKTYWNI */}
+      <section style={{ padding: '64px 40px 0' }}>
+        <div style={{ borderBottom: '2px solid #111', paddingBottom: '12px' }}>
+          <p style={{ fontFamily: I, fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: '#999' }}>
+            Artysci galerii &mdash; {aktywni.length}
+          </p>
+        </div>
+        {aktywni.map((a, i) => (
+          <a key={i} href={`/${a.url_artysty || '#'}`} className="artist-row" style={rowStyle}>
+            <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2 }}>{a.nazwisko_i_imie}</p>
+            <p style={{ fontFamily: I, fontSize: '12px', color: '#888', alignSelf: 'center' }}>{a.dziedzina || ''}</p>
+            <p style={{ fontFamily: I, fontSize: '12px', color: '#bbb', alignSelf: 'center', textAlign: 'right' }}>{a.kraj || ''}</p>
+          </a>
+        ))}
+      </section>
 
-      {/* WSPOLPRACUJACY */}
-      {wspolpracujacy.length > 0 && (
-        <section style={{ padding: '64px 40px 0' }}>
-          {sectionLabel('Wspolpracujacy', wspolpracujacy.length)}
-          {wspolpracujacy.map((a, i) => (
-            <a key={i} href={`/${a.url_artysty || '#'}`} className="artist-row" style={rowStyle}>
-              <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2 }}>{a.nazwisko_i_imie}</p>
-              <p style={{ fontFamily: I, fontSize: '12px', color: '#888', alignSelf: 'center' }}>{a.dziedzina || ''}</p>
-              <p style={{ fontFamily: I, fontSize: '12px', color: '#bbb', alignSelf: 'center', textAlign: 'right' }}>{a.kraj || ''}</p>
-            </a>
-          ))}
-        </section>
-      )}
-
-      {/* W KOLEKCJI */}
-      {kolekcja.length > 0 && (
+      {/* ARCHIWUM */}
+      {archiwum.length > 0 && (
         <section style={{ padding: '64px 40px 96px' }}>
-          {sectionLabel('W kolekcji', kolekcja.length)}
-          {kolekcja.map((a, i) => (
-            <a key={i} href={`/${a.url_artysty || '#'}`} className="artist-row" style={rowStyle}>
+          <div style={{ borderBottom: '1px solid #ebebeb', paddingBottom: '12px' }}>
+            <p style={{ fontFamily: I, fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: '#999' }}>
+              Archiwum &mdash; {archiwum.length}
+            </p>
+          </div>
+          {archiwum.map((a, i) => (
+            <a key={i} href={`/${a.url_artysty || '#'}`} className="artist-row" style={{ ...rowStyle }}>
               <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2, color: '#666' }}>{a.nazwisko_i_imie}</p>
               <p style={{ fontFamily: I, fontSize: '12px', color: '#bbb', alignSelf: 'center' }}>{a.dziedzina || ''}</p>
               <p style={{ fontFamily: I, fontSize: '12px', color: '#ddd', alignSelf: 'center', textAlign: 'right' }}>{a.kraj || ''}</p>
