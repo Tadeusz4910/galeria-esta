@@ -42,7 +42,7 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
     : ''
 
   const coverZdjecie = zdjecia?.find(z => z.cover) || zdjecia?.[0]
-  const pozostaleZdjecia = zdjecia?.filter(z => !z.cover).slice(0, 9) || []
+  const pozostaleZdjecia = zdjecia?.filter(z => !z.cover) || []
 
   return (
     <main style={{ background: '#fff', color: '#111' }}>
