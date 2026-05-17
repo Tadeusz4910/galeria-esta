@@ -79,6 +79,8 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
         .wystawa-row{border-bottom:1px solid #ebebeb;padding:28px 0;transition:opacity .2s;}
         .wystawa-row:hover{opacity:.7;}
         .wystawa-row:first-child{border-top:1px solid #ebebeb;}
+        .idea-card{background:#fff;padding:32px;display:block;transition:background .2s;}
+        .idea-card:hover{background:#f9f9f7;}
       `}</style>
 
       {/* NAV */}
@@ -192,9 +194,7 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
               </p>
               <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:'1px',background:'#ebebeb' }}>
                 {ideeGlowne.map((ia: any, i: number) => (
-                  <a key={i} href={`/idee/${ia.idee?.slug}`} style={{ background:'#fff',padding:'32px',display:'block',transition:'background .2s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background='#f9f9f7')}
-                    onMouseLeave={e => (e.currentTarget.style.background='#fff')}>
+                  <a key={i} href={`/idee/${ia.idee?.slug}`} className="idea-card">
                     <p style={{ fontFamily:C,fontSize:'22px',fontWeight:400,marginBottom:'12px' }}>
                       {ia.idee?.nazwa}
                     </p>
