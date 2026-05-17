@@ -6,34 +6,43 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export default async function ArtystaPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+export default async function WystawaPage({ params }: { params: Promise<{ url: string }> }) {
+  const { url } = await params
 
-  const { data: artysci } = await supabase
-    .from('artysci')
+  const { data: wystawy } = await supabase
+    .from('wystawy')
     .select('*')
-    .eq('url_artysty', slug)
+    .eq('url_wystawy', url)
     .limit(1)
 
-  const artysta = artysci?.[0]
-  if (!artysta) notFound()
+  const w = wystawy?.[0]
+  if (!w) notFound()
 
-  const { data: prace } = await supabase
-    .from('prace')
-    .select('id, tytul, rok, technika, wymiary_pracy, url_pracy, widocznosc')
-    .eq('artysta_id', artysta.id)
-    .in('widocznosc', ['glowny_nurt', 'kolekcja'])
-    .order('rok', { ascending: false })
-    .limit(6)
+  const { data: zdjecia } = await supabase
+    .from('wystawy_zdjecia')
+    .select('url, alt, opis, typ, cover, kolejnosc')
+    .eq('wystawa_id', w.id)
+    .order('kolejnosc')
 
-  const { data: wystawyArtysty } = await supabase
+  const { data: artysciWystawy } = await supabase
     .from('wystawy_artysci')
-    .select('wystawy(id, tytul, url_wystawy, data_od, data_do, img_plakat, miejsce, miasto)')
-    .eq('artysta_id', artysta.id)
-    .limit(4)
+    .select('opis_w_wystawie, artysci(nazwisko_i_imie, url_artysty, biografia, dziedzina)')
+    .eq('wystawa_id', w.id)
+
+  const { data: materialy } = await supabase
+    .from('wystawy_materialy')
+    .select('typ, tytul, url, opis, zrodlo')
+    .eq('wystawa_id', w.id)
 
   const C = '"Cormorant Garamond", Georgia, serif'
   const I = '"Instrument Sans", sans-serif'
+
+  const fmtDate = (d: string | null) => d
+    ? new Date(d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
+    : ''
+
+  const coverZdjecie = zdjecia?.find(z => z.cover) || zdjecia?.[0]
+  const pozostaleZdjecia = zdjecia?.filter(z => !z.cover) || []
 
   return (
     <main style={{ background: '#fff', color: '#111' }}>
@@ -47,16 +56,15 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
         .img-wrap{overflow:hidden;}
         .img-hover{transition:transform .7s cubic-bezier(.25,.46,.45,.94);}
         .img-wrap:hover .img-hover{transform:scale(1.04);}
-        .praca-card:hover{opacity:.85;}
-        .wystawa-card:hover{opacity:.75;}
+        .artysta-link{transition:opacity .2s;}
+        .artysta-link:hover{opacity:.6;}
       `}</style>
 
-      {/* NAWIGACJA */}
       <nav style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'0 40px',height:'54px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.96)',borderBottom:'1px solid #ebebeb' }}>
         <a href="/" style={{ fontFamily:C,fontSize:'16px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase' }}>Galeria ESTA</a>
         <div style={{ display:'flex',gap:'28px' }}>
-          <a href="/artysci" className="nav-link" style={{ opacity:1 }}>Artysci</a>
-          <a href="/wystawy" className="nav-link">Wystawy</a>
+          <a href="/artysci" className="nav-link">Artysci</a>
+          <a href="/wystawy" className="nav-link" style={{ opacity:1 }}>Wystawy</a>
           <a href="/targi" className="nav-link">Targi</a>
           {['Publikacje','Artykuly','Filmy','Oferta','Viewing Room','O nas'].map(item => (
             <a key={item} href="#" className="nav-link">{item}</a>
@@ -65,123 +73,135 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
         <a href="#" className="nav-link" style={{ fontSize:'10px' }}>PL / EN</a>
       </nav>
 
-      {/* HERO – tekst lewo, praca artysty prawo */}
-      <section style={{ paddingTop:'54px',display:'grid',gridTemplateColumns:'1fr 1fr',minHeight:'80vh',background:'#f8f8f6' }}>
-        <div style={{ padding:'80px 56px',display:'flex',flexDirection:'column',justifyContent:'flex-end' }}>
-          <a href="/artysci" style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.16em',textTransform:'uppercase',color:'#999',marginBottom:'48px',display:'block' }}>
-            &larr; Artysci
-          </a>
-          <h1 style={{ fontFamily:C,fontSize:'clamp(40px,5vw,80px)',fontWeight:400,lineHeight:1.0,marginBottom:'20px' }}>
-            {artysta.nazwisko_i_imie}
+      {/* HERO */}
+      <section style={{ paddingTop:'54px',position:'relative',height:'100vh',overflow:'hidden',background:'#111' }}>
+        {w.img_plakat && (
+          <img src={w.img_plakat} alt={w.tytul||''} style={{ width:'100%',height:'100%',objectFit:'cover',display:'block',opacity:.8 }} />
+        )}
+        <div style={{ position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,.3) 0%,rgba(0,0,0,.1) 40%,rgba(0,0,0,.6) 100%)' }} />
+        <div style={{ position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',padding:'0 40px' }}>
+          <h1 style={{ fontFamily:C,fontSize:'clamp(40px,6vw,88px)',fontWeight:400,color:'#fff',lineHeight:1.0,marginBottom:'12px' }}>
+            {w.artysci_txt||''}
           </h1>
-          <div style={{ display:'flex',flexDirection:'column',gap:'4px' }}>
-            {artysta.rok_urodzenia && (
-              <p style={{ fontFamily:I,fontSize:'13px',color:'#888' }}>
-                ur. {artysta.rok_urodzenia}{artysta.rok_smierci ? ` — ${artysta.rok_smierci}` : ''}
-              </p>
-            )}
-            {artysta.miasto && (
-              <p style={{ fontFamily:I,fontSize:'13px',color:'#888' }}>{artysta.miasto}{artysta.kraj ? `, ${artysta.kraj}` : ''}</p>
-            )}
-            {artysta.dziedzina && (
-              <p style={{ fontFamily:I,fontSize:'13px',color:'#bbb',marginTop:'4px' }}>{artysta.dziedzina}</p>
-            )}
-          </div>
-        </div>
-        <div style={{ background:'#e8e4de',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',minHeight:'480px' }}>
-          <p style={{ fontFamily:C,fontSize:'13px',fontStyle:'italic',color:'#bbb' }}>Praca artysty</p>
+          <p style={{ fontFamily:C,fontSize:'clamp(20px,3vw,40px)',fontWeight:300,fontStyle:'italic',color:'rgba(255,255,255,.8)',marginBottom:'20px' }}>
+            {w.tytul||''}
+          </p>
+          <p style={{ fontFamily:C,fontSize:'clamp(14px,1.5vw,20px)',fontWeight:300,color:'rgba(255,255,255,.6)' }}>
+            {fmtDate(w.data_od)} &ndash; {fmtDate(w.data_do)}
+          </p>
         </div>
       </section>
 
-      {/* BIOGRAFIA */}
-      {artysta.biografia && (
+      {/* SEKCJA GLOWNA – zdjecie lewo, tekst prawo */}
+      <section style={{ display:'grid',gridTemplateColumns:'3fr 2fr',minHeight:'80vh',borderTop:'1px solid #ebebeb' }}>
+        <div className="img-wrap">
+          {coverZdjecie?.url
+            ? <img src={coverZdjecie.url} alt={coverZdjecie.alt||''} className="img-hover" style={{ width:'100%',height:'100%',objectFit:'cover',display:'block' }} />
+            : w.img_plakat
+              ? <img src={w.img_plakat} alt={w.tytul||''} className="img-hover" style={{ width:'100%',height:'100%',objectFit:'cover',display:'block' }} />
+              : <div style={{ width:'100%',height:'100%',background:'#f0ece5',minHeight:'500px' }} />
+          }
+        </div>
+        <div style={{ padding:'72px 48px',display:'flex',flexDirection:'column',justifyContent:'center',borderLeft:'1px solid #ebebeb' }}>
+          <a href="/wystawy" style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.16em',textTransform:'uppercase',color:'#999',marginBottom:'48px',display:'block' }}>
+            &larr; Wystawy
+          </a>
+          <p style={{ fontFamily:C,fontSize:'13px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase',color:'#111',marginBottom:'24px' }}>
+            Wystawa galerii
+          </p>
+          <h2 style={{ fontFamily:C,fontSize:'clamp(28px,3vw,48px)',fontWeight:400,lineHeight:1.05,marginBottom:'8px' }}>
+            {w.artysci_txt||''}
+          </h2>
+          <p style={{ fontFamily:C,fontSize:'clamp(16px,1.8vw,26px)',fontWeight:300,fontStyle:'italic',color:'#666',marginBottom:'32px',lineHeight:1.3 }}>
+            {w.tytul||''}
+          </p>
+          <p style={{ fontFamily:C,fontSize:'16px',fontWeight:400,marginBottom:'4px' }}>
+            {fmtDate(w.data_od)} &ndash; {fmtDate(w.data_do)}
+          </p>
+          <p style={{ fontFamily:C,fontSize:'16px',fontWeight:400,marginBottom:'32px' }}>
+            {w.miejsce||'Galeria ESTA, Gliwice'}
+          </p>
+          {w.opis_krotki && (
+            <p style={{ fontFamily:C,fontSize:'16px',fontWeight:300,color:'#444',lineHeight:1.7,marginBottom:'40px' }}>
+              {w.opis_krotki}
+            </p>
+          )}
+          <a href="mailto:galeria@galeria-esta.pl" className="arrow-link">&rarr; Zapytaj o wystawe</a>
+        </div>
+      </section>
+
+      {/* OPIS PELNY */}
+      {w.opis_pelny && (
         <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb',display:'grid',gridTemplateColumns:'200px 1fr',gap:'80px' }}>
+          <p style={{ fontFamily:C,fontSize:'13px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase',color:'#999' }}>O wystawie</p>
           <div>
-            <p style={{ fontFamily:C,fontSize:'13px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase',color:'#999',marginBottom:'24px' }}>Biografia</p>
-            <a href="#" className="arrow-link">&darr; Pelna biografia</a>
-          </div>
-          <div>
-            <p style={{ fontFamily:C,fontSize:'clamp(16px,2vw,22px)',fontWeight:300,color:'#333',lineHeight:1.7,maxWidth:'680px' }}>
-              {artysta.biografia.substring(0, 400)}{artysta.biografia.length > 400 ? '...' : ''}
+            {w.cytat && (
+              <blockquote style={{ fontFamily:C,fontSize:'clamp(18px,2.5vw,28px)',fontWeight:300,fontStyle:'italic',color:'#333',lineHeight:1.5,marginBottom:'40px',paddingLeft:'28px',borderLeft:'2px solid #e8e8e8' }}>
+                &ldquo;{w.cytat}&rdquo;
+                {w.cytat_autor && <footer style={{ fontFamily:I,fontSize:'12px',color:'#999',marginTop:'12px',fontStyle:'normal' }}>&mdash; {w.cytat_autor}</footer>}
+              </blockquote>
+            )}
+            <p style={{ fontFamily:C,fontSize:'17px',fontWeight:300,color:'#444',lineHeight:1.8,whiteSpace:'pre-line' }}>
+              {w.opis_pelny}
             </p>
           </div>
         </section>
       )}
 
-      {/* PRACE */}
-      {prace && prace.length > 0 && (
+      {/* GALERIA ZDJEC */}
+      {pozostaleZdjecia.length > 0 && (
         <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb' }}>
-          <div style={{ display:'grid',gridTemplateColumns:'200px 1fr',gap:'80px',alignItems:'start' }}>
-            <div>
-              <h2 style={{ fontFamily:C,fontSize:'28px',fontWeight:400,marginBottom:'16px' }}>Prace</h2>
-              <a href="#" className="arrow-link">Wszystkie prace</a>
-            </div>
-            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'48px' }}>
-              {prace.slice(0,4).map((p, i) => (
-                <a key={i} href="#" className="praca-card" style={{ display:'block',transition:'opacity .2s' }}>
-                  <div className="img-wrap" style={{ background:'#f0ece5',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'center',aspectRatio:'4/3' }}>
-                    <p style={{ fontFamily:C,fontSize:'12px',fontStyle:'italic',color:'#bbb' }}>Zdjecie pracy</p>
-                  </div>
-                  <p style={{ fontFamily:C,fontSize:'17px',fontWeight:400,marginBottom:'4px',textDecoration:'underline',textDecorationColor:'rgba(0,0,0,.3)' }}>{p.tytul}</p>
-                  <p style={{ fontFamily:C,fontSize:'15px',fontWeight:300,color:'#888' }}>{p.rok}</p>
-                </a>
-              ))}
-            </div>
+          <h2 style={{ fontFamily:C,fontSize:'28px',fontWeight:400,marginBottom:'48px' }}>Widoki ekspozycji</h2>
+          <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'2px',background:'#e8e8e8' }}>
+            {pozostaleZdjecia.map((z, i) => (
+              <div key={i} className="img-wrap" style={{ background:'#fff' }}>
+                <img src={z.url} alt={z.alt||''} className="img-hover" style={{ width:'100%',height:'auto',display:'block' }} />
+                {z.opis && <p style={{ fontFamily:I,fontSize:'11px',color:'#888',padding:'10px 16px' }}>{z.opis}</p>}
+              </div>
+            ))}
           </div>
         </section>
       )}
 
-      {/* WYSTAWY */}
-      {wystawyArtysty && wystawyArtysty.length > 0 && (
-        <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb',background:'#faf9f7' }}>
-          <div style={{ display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'48px' }}>
-            <h2 style={{ fontFamily:C,fontSize:'28px',fontWeight:400 }}>Wystawy w Galerii ESTA</h2>
-            <a href="/wystawy" className="arrow-link">Wszystkie wystawy</a>
-          </div>
-          <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'24px' }}>
-            {wystawyArtysty.map((wa: any, i: number) => (
-              <a key={i} href={`/wystawa/${wa.wystawy?.url_wystawy}`} className="wystawa-card" style={{ display:'block',transition:'opacity .2s' }}>
-                <div className="img-wrap" style={{ marginBottom:'16px',background:'#e8e4de' }}>
-                  {wa.wystawy?.img_plakat
-                    ? <img src={wa.wystawy.img_plakat} alt={wa.wystawy.tytul||''} className="img-hover" style={{ width:'100%',aspectRatio:'4/3',objectFit:'cover',display:'block' }} />
-                    : <div style={{ aspectRatio:'4/3',background:'#e0ddd8' }} />
-                  }
-                </div>
-                <p style={{ fontFamily:I,fontSize:'9px',fontWeight:600,letterSpacing:'.18em',textTransform:'uppercase',color:'#999',marginBottom:'8px' }}>
-                  Wystawa galerii
-                </p>
-                <p style={{ fontFamily:C,fontSize:'16px',fontWeight:400,marginBottom:'4px',lineHeight:1.3 }}>
-                  {wa.wystawy?.tytul}
-                </p>
-                <p style={{ fontFamily:C,fontSize:'13px',fontWeight:300,color:'#888' }}>
-                  {wa.wystawy?.data_od ? new Date(wa.wystawy.data_od).toLocaleDateString('pl-PL',{day:'numeric',month:'long'}) : ''}
-                  {wa.wystawy?.data_do ? ` — ${new Date(wa.wystawy.data_do).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})}` : ''}
-                </p>
-                {wa.wystawy?.miasto && (
-                  <p style={{ fontFamily:I,fontSize:'11px',color:'#bbb',marginTop:'4px',fontWeight:600 }}>{wa.wystawy.miejsce||''}{wa.wystawy.miasto ? `, ${wa.wystawy.miasto}` : ''}</p>
-                )}
+      {/* MATERIALY */}
+      {materialy && materialy.length > 0 && (
+        <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb' }}>
+          <h2 style={{ fontFamily:C,fontSize:'28px',fontWeight:400,marginBottom:'48px' }}>Materialy</h2>
+          <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0' }}>
+            {materialy.map((m: any, i: number) => (
+              <a key={i} href={m.url||'#'} style={{ display:'block',padding:'24px 0',borderBottom:'1px solid #ebebeb',paddingRight:i%2===0?'40px':'0',paddingLeft:i%2===1?'40px':'0',borderRight:i%2===0?'1px solid #ebebeb':'none' }}>
+                <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.16em',textTransform:'uppercase',color:'#999',marginBottom:'8px' }}>{m.typ}</p>
+                <p style={{ fontFamily:C,fontSize:'18px',fontWeight:400,marginBottom:'4px' }}>{m.tytul}</p>
+                {m.zrodlo && <p style={{ fontFamily:I,fontSize:'12px',color:'#888' }}>{m.zrodlo}</p>}
               </a>
             ))}
           </div>
         </section>
       )}
 
-      {/* KONTAKT */}
-      <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb',display:'grid',gridTemplateColumns:'200px 1fr',gap:'80px',alignItems:'center' }}>
-        <div>
-          <p style={{ fontFamily:C,fontSize:'13px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase',color:'#999',marginBottom:'16px' }}>Kontakt</p>
-          <p style={{ fontFamily:C,fontSize:'16px',fontWeight:300,color:'#555',lineHeight:1.7 }}>
-            Zapytaj o prace<br/>tego artysty
-          </p>
-        </div>
-        <div>
-          <a href="mailto:galeria@galeria-esta.pl" className="arrow-link" style={{ fontSize:'14px' }}>
-            &rarr; galeria@galeria-esta.pl
+      {/* ZAPROSZENIE DO ARTYSTY */}
+      {artysciWystawy && artysciWystawy.map((wa: any, i: number) => (
+        <section key={i} style={{ borderTop:'1px solid #ebebeb',display:'grid',gridTemplateColumns:'1fr 1fr',minHeight:'60vh' }}>
+          <div style={{ background:'#f8f8f6',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',minHeight:'400px' }}>
+            <p style={{ fontFamily:C,fontSize:'13px',fontStyle:'italic',color:'#ccc' }}>Zdjecie artysty</p>
+          </div>
+          <a href={`/artysta/${wa.artysci?.url_artysty||'#'}`} className="artysta-link" style={{ display:'flex',flexDirection:'column',justifyContent:'center',padding:'72px 56px',borderLeft:'1px solid #ebebeb' }}>
+            <p style={{ fontFamily:C,fontSize:'13px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase',color:'#999',marginBottom:'32px' }}>
+              Artysta
+            </p>
+            <h2 style={{ fontFamily:C,fontSize:'clamp(32px,4vw,60px)',fontWeight:400,lineHeight:1.0,marginBottom:'32px' }}>
+              {wa.artysci?.nazwisko_i_imie||''}
+            </h2>
+            {wa.opis_w_wystawie && (
+              <p style={{ fontFamily:C,fontSize:'16px',fontWeight:300,color:'#666',lineHeight:1.7,marginBottom:'40px',maxWidth:'420px' }}>
+                {wa.opis_w_wystawie}
+              </p>
+            )}
+            <span className="arrow-link">&rarr; Strona artysty</span>
           </a>
-        </div>
-      </section>
+        </section>
+      ))}
 
-      {/* FOOTER */}
       <footer style={{ background:'#111',padding:'64px 40px',display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:'48px' }}>
         <div>
           <p style={{ fontFamily:C,fontSize:'18px',fontWeight:400,color:'#fff',letterSpacing:'.1em',marginBottom:'20px' }}>Galeria ESTA</p>
