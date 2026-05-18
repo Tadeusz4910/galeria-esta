@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import Nav from '@/components/Nav'
 import { notFound } from 'next/navigation'
 
 const supabase = createClient(
@@ -49,8 +50,6 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         a{text-decoration:none;color:inherit;}
-        .nav-link{font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.5;transition:opacity .2s;}
-        .nav-link:hover{opacity:1;}
         .arrow-link{display:inline-flex;align-items:center;gap:8px;font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.6;transition:opacity .2s;}
         .arrow-link:hover{opacity:1;}
         .img-wrap{overflow:hidden;}
@@ -60,18 +59,7 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
         .artysta-link:hover{opacity:.6;}
       `}</style>
 
-      <nav style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'0 40px',height:'54px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.96)',borderBottom:'1px solid #ebebeb' }}>
-        <a href="/" style={{ fontFamily:C,fontSize:'16px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase' }}>Galeria ESTA</a>
-        <div style={{ display:'flex',gap:'28px' }}>
-          <a href="/artysci" className="nav-link">Artysci</a>
-          <a href="/wystawy" className="nav-link" style={{ opacity:1 }}>Wystawy</a>
-          <a href="/targi" className="nav-link">Targi</a>
-          {['Publikacje','Artykuly','Filmy','Oferta','Viewing Room','O nas'].map(item => (
-            <a key={item} href="#" className="nav-link">{item}</a>
-          ))}
-        </div>
-        <a href="#" className="nav-link" style={{ fontSize:'10px' }}>PL / EN</a>
-      </nav>
+      <Nav active="wystawy" />
 
       {/* HERO */}
       <section style={{ paddingTop:'54px',position:'relative',height:'100vh',overflow:'hidden',background:'#111' }}>
@@ -92,7 +80,6 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
         </div>
       </section>
 
-      {/* SEKCJA GLOWNA – zdjecie lewo, tekst prawo */}
       <section style={{ display:'grid',gridTemplateColumns:'3fr 2fr',minHeight:'80vh',borderTop:'1px solid #ebebeb' }}>
         <div className="img-wrap">
           {coverZdjecie?.url
@@ -130,7 +117,6 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
         </div>
       </section>
 
-      {/* OPIS PELNY */}
       {w.opis_pelny && (
         <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb',display:'grid',gridTemplateColumns:'200px 1fr',gap:'80px' }}>
           <p style={{ fontFamily:C,fontSize:'13px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase',color:'#999' }}>O wystawie</p>
@@ -148,7 +134,6 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
         </section>
       )}
 
-      {/* GALERIA ZDJEC */}
       {pozostaleZdjecia.length > 0 && (
         <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb' }}>
           <h2 style={{ fontFamily:C,fontSize:'28px',fontWeight:400,marginBottom:'48px' }}>Widoki ekspozycji</h2>
@@ -163,7 +148,6 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
         </section>
       )}
 
-      {/* MATERIALY */}
       {materialy && materialy.length > 0 && (
         <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb' }}>
           <h2 style={{ fontFamily:C,fontSize:'28px',fontWeight:400,marginBottom:'48px' }}>Materialy</h2>
@@ -179,7 +163,6 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
         </section>
       )}
 
-      {/* ZAPROSZENIE DO ARTYSTY */}
       {artysciWystawy && artysciWystawy.map((wa: any, i: number) => (
         <section key={i} style={{ borderTop:'1px solid #ebebeb',display:'grid',gridTemplateColumns:'1fr 1fr',minHeight:'60vh' }}>
           <div style={{ background:'#f8f8f6',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',minHeight:'400px' }}>
@@ -209,13 +192,13 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
         </div>
         <div>
           <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase',color:'#333',marginBottom:'16px' }}>Menu</p>
-          {['Artysci','Wystawy','Targi','Oferta','Viewing Room','O nas'].map(item => (
-            <a key={item} href="#" style={{ display:'block',fontFamily:I,fontSize:'12px',color:'#555',lineHeight:2.2 }}>{item}</a>
+          {['Artysci','Wystawy','Targi','Idee','Kolekcja','Kompendium','Viewing Room','O nas'].map(item => (
+            <a key={item} href={item === 'Artysci' ? '/artysci' : item === 'Wystawy' ? '/wystawy' : item === 'Targi' ? '/targi' : item === 'Idee' ? '/idee' : item === 'Kompendium' ? '/kompendium' : '#'} style={{ display:'block',fontFamily:I,fontSize:'12px',color:'#555',lineHeight:2.2 }}>{item}</a>
           ))}
         </div>
         <div>
           <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase',color:'#333',marginBottom:'16px' }}>Godziny</p>
-          <p style={{ fontFamily:I,fontSize:'12px',lineHeight:2,color:'#555' }}>Wt — Pt: 11:00 — 18:00<br/>Sob: 11:00 — 15:00<br/>Nd — Pn: zamkniete</p>
+          <p style={{ fontFamily:I,fontSize:'12px',lineHeight:2,color:'#555' }}>Wt &mdash; Pt: 11:00 &mdash; 18:00<br/>Sob: 11:00 &mdash; 15:00<br/>Nd &mdash; Pn: zamkniete</p>
         </div>
         <div>
           <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.18em',textTransform:'uppercase',color:'#333',marginBottom:'16px' }}>Social</p>
