@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js'
-import Nav from '@/components/Nav'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,17 +32,32 @@ export default async function WystawyPage() {
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         a{text-decoration:none;color:inherit;}
+        .nav-link{font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.5;transition:opacity .2s;}
+        .nav-link:hover{opacity:1;}
         .card-img{transition:transform .8s cubic-bezier(.25,.46,.45,.94);}
         .card-hover:hover .card-img{transform:scale(1.03);}
+        .arrow-link{display:inline-flex;align-items:center;gap:8px;font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.6;transition:opacity .2s;}
+        .arrow-link:hover{opacity:1;}
       `}</style>
 
-      <Nav active="wystawy" />
+      {/* NAWIGACJA */}
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '54px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,.96)', borderBottom: '1px solid #ebebeb' }}>
+        <a href="/" style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase' }}>Galeria ESTA</a>
+        <div style={{ display: 'flex', gap: '28px' }}>
+          {['Artysci', 'Wystawy', 'Targi', 'Publikacje', 'Artykuly', 'Filmy', 'Oferta', 'Viewing Room', 'O nas'].map(item => (
+            <a key={item} href={item === 'Artysci' ? '/artysci' : item === 'Wystawy' ? '/wystawy' : item === 'Targi' ? '/targi' : '#'} className="nav-link" style={{ opacity: item === 'Wystawy' ? 1 : undefined }}>{item}</a>
+          ))}
+        </div>
+        <a href="#" className="nav-link" style={{ fontSize: '10px' }}>PL / EN</a>
+      </nav>
 
+      {/* NAGLOWEK */}
       <section style={{ paddingTop: '120px', padding: '120px 40px 64px', borderBottom: '1px solid #ebebeb' }}>
         <h1 style={{ fontFamily: C, fontSize: 'clamp(48px,6vw,88px)', fontWeight: 400, lineHeight: 1.0 }}>Wystawy</h1>
         <p style={{ fontFamily: I, fontSize: '13px', color: '#888', marginTop: '16px' }}>{wystawy?.length || 0} wystaw</p>
       </section>
 
+      {/* AKTUALNE */}
       {aktualne.length > 0 && (
         <section style={{ padding: '64px 40px' }}>
           <div style={{ borderBottom: '2px solid #111', paddingBottom: '12px', marginBottom: '48px' }}>
@@ -66,6 +80,7 @@ export default async function WystawyPage() {
         </section>
       )}
 
+      {/* ARCHIWUM wg lat */}
       {years.map(year => (
         <section key={year} style={{ padding: '0 40px 64px', borderTop: '1px solid #ebebeb' }}>
           <div style={{ padding: '32px 0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -88,6 +103,7 @@ export default async function WystawyPage() {
         </section>
       ))}
 
+      {/* FOOTER */}
       <footer style={{ background: '#111', padding: '64px 40px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '48px' }}>
         <div>
           <p style={{ fontFamily: C, fontSize: '18px', fontWeight: 400, color: '#fff', letterSpacing: '.1em', marginBottom: '20px' }}>Galeria ESTA</p>
@@ -95,8 +111,8 @@ export default async function WystawyPage() {
         </div>
         <div>
           <p style={{ fontFamily: I, fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: '#333', marginBottom: '16px' }}>Menu</p>
-          {['Artysci','Wystawy','Targi','Idee','Kolekcja','Kompendium','Viewing Room','O nas'].map(item => (
-            <a key={item} href={item === 'Artysci' ? '/artysci' : item === 'Wystawy' ? '/wystawy' : item === 'Targi' ? '/targi' : item === 'Idee' ? '/idee' : item === 'Kompendium' ? '/kompendium' : '#'} style={{ display: 'block', fontFamily: I, fontSize: '12px', color: '#555', lineHeight: 2.2 }}>{item}</a>
+          {['Artysci', 'Wystawy', 'Targi', 'Oferta', 'Viewing Room', 'O nas'].map(item => (
+            <a key={item} href="#" style={{ display: 'block', fontFamily: I, fontSize: '12px', color: '#555', lineHeight: 2.2 }}>{item}</a>
           ))}
         </div>
         <div>

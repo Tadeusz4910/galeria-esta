@@ -2,233 +2,95 @@ import { createClient } from '@supabase/supabase-js'
 
 export const revalidate = 0
 
-import Nav from '@/components/Nav'
-
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export default async function Home() {
-  const { data: wystawyAll } = await supabase
-    .from('wystawy')
-    .select('tytul, artysci_txt, data_od, data_do, url_wystawy, img_plakat, opis_krotki, miejsce')
-    .not('tytul', 'is', null)
-    .order('data_od', { ascending: false })
-    .limit(8)
-
-  const { data: targiAll } = await supabase
-    .from('targi')
-    .select('nazwa, artysci_txt, data_od, data_do, url_targu, img_cover, opis')
-    .eq('publiczne', true)
-    .order('data_od', { ascending: false })
-    .limit(6)
-
+export default async function ArtysciPage() {
   const { data: artysci } = await supabase
     .from('artysci')
-    .select('nazwisko_i_imie, url_artysty')
-    .eq('widocznosc_strona', 'aktywny')
+    .select('nazwisko_i_imie, url_artysty, kraj, dziedzina, widocznosc_strona')
+    .in('widocznosc_strona', ['aktywny', 'archiwum'])
     .order('nazwisko_i_imie')
 
-  const now = new Date()
-  const aktualna = wystawyAll?.find(w => new Date(w.data_od) <= now && new Date(w.data_do) >= now) || wystawyAll?.[0]
-  const upcoming = wystawyAll?.find(w => new Date(w.data_od) > now)
-  const pozostaleWystawy = wystawyAll?.filter(w =>
-    w.url_wystawy !== aktualna?.url_wystawy && w.url_wystawy !== upcoming?.url_wystawy
-  ).slice(0, 4) || []
-
-  const aktualneTargi = targiAll?.[0]
-  const pozostaleTargi = targiAll?.slice(1, 5) || []
-
-  const fmtDate = (d: string | null) => d
-    ? new Date(d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
-    : ''
+  const aktywni = artysci?.filter(a => a.widocznosc_strona === 'aktywny') || []
+  const archiwum = artysci?.filter(a => a.widocznosc_strona === 'archiwum') || []
 
   const C = '"Cormorant Garamond", Georgia, serif'
   const I = '"Instrument Sans", sans-serif'
+
+  const rowStyle = {
+    display: 'grid' as const,
+    gridTemplateColumns: '1fr 1fr 1fr',
+    borderBottom: '1px solid #ebebeb',
+    padding: '20px 0',
+    textDecoration: 'none' as const,
+    color: 'inherit' as const,
+  }
 
   return (
     <main style={{ background: '#fff', color: '#111' }}>
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         a{text-decoration:none;color:inherit;}
-        .nav-link{font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#111;opacity:.5;transition:opacity .2s;}
+        .nav-link{font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.5;transition:opacity .2s;}
         .nav-link:hover{opacity:1;}
-        .nav-link-active{opacity:1;}
-        .card-img{transition:transform .8s cubic-bezier(.25,.46,.45,.94);}
-        .card-hover:hover .card-img{transform:scale(1.03);}
-        .artist-link{font-family:"Cormorant Garamond",Georgia,serif;display:block;font-size:17px;font-weight:400;line-height:2.4;border-bottom:1px solid #ebebeb;}
-        .artist-link:hover{opacity:.4;}
-        .arrow-link{display:inline-flex;align-items:center;gap:8px;font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.6;transition:opacity .2s;}
-        .arrow-link:hover{opacity:1;}
+        .artist-row:hover{background:#faf9f7;}
       `}</style>
-      <Nav active="artysci" />
 
-      {/* HERO – pelnoekranowe zdjecie */}
-      <section style={{ paddingTop: '54px', height: '100vh', overflow: 'hidden' }}>
-        <img src={aktualna?.img_plakat || ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-      </section>
-
-      {/* AKTUALNA WYSTAWA – z marginesem jak White Cube */}
-      <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '64px', alignItems: 'start' }}>
-          <div>
-            <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
-              Aktualna wystawa
-            </p>
-            <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>
-              {aktualna?.artysci_txt || ''}
-            </h2>
-            <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>
-              {aktualna?.tytul || ''}
-            </p>
-            <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, marginBottom: '4px' }}>
-              {fmtDate(aktualna?.data_od || null)} &ndash; {fmtDate(aktualna?.data_do || null)}
-            </p>
-            <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, marginBottom: '32px' }}>
-              {aktualna?.miejsce || 'Galeria ESTA, Gliwice'}
-            </p>
-            {aktualna?.opis_krotki && (
-              <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 300, color: '#444', lineHeight: 1.5, marginBottom: '40px' }}>
-                {aktualna.opis_krotki}
-              </p>
-            )}
-            <a href={`/wystawa/${aktualna?.url_wystawy || ''}`} className="arrow-link">&rarr; Wiecej o wystawie</a>
-          </div>
-          {/* Zdjecie z marginesem */}
-          <div style={{ overflow: 'hidden' }}>
-            <img src={aktualna?.img_plakat || ''} alt={aktualna?.tytul || ''} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
-          </div>
+      {/* NAWIGACJA */}
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '54px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,.96)', borderBottom: '1px solid #ebebeb' }}>
+        <a href="/" style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase' }}>Galeria ESTA</a>
+        <div style={{ display: 'flex', gap: '28px' }}>
+          {['Artysci', 'Wystawy', 'Targi', 'Publikacje', 'Artykuly', 'Filmy', 'Oferta', 'Viewing Room', 'O nas'].map(item => (
+            <a key={item} href={item === 'Artysci' ? '/artysci' : item === 'Wystawy' ? '/wystawy' : item === 'Targi' ? '/targi' : '#'} className="nav-link" style={{ opacity: item === 'Artysci' ? 1 : undefined }}>{item}</a>
+          ))}
         </div>
+        <a href="#" className="nav-link" style={{ fontSize: '10px' }}>PL / EN</a>
+      </nav>
+
+      {/* NAGLOWEK */}
+      <section style={{ paddingTop: '120px', padding: '120px 40px 64px', borderBottom: '1px solid #ebebeb' }}>
+        <h1 style={{ fontFamily: C, fontSize: 'clamp(48px,6vw,88px)', fontWeight: 400, lineHeight: 1.0 }}>Artysci</h1>
+        <p style={{ fontFamily: I, fontSize: '13px', color: '#888', marginTop: '16px' }}>
+          {aktywni.length} artystow
+        </p>
       </section>
 
-      {/* UPCOMING */}
-      {upcoming && (
-        <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '64px', alignItems: 'start' }}>
-            <div style={{ overflow: 'hidden' }}>
-              <img src={upcoming.img_plakat || ''} alt={upcoming.tytul || ''} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
-            </div>
-            <div>
-              <p style={{ fontFamily: I, fontSize: '10px', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
-                Upcoming
-              </p>
-              <h2 style={{ fontFamily: C, fontSize: 'clamp(28px,3vw,48px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '8px' }}>{upcoming.artysci_txt}</h2>
-              <p style={{ fontFamily: C, fontSize: 'clamp(16px,1.8vw,26px)', fontWeight: 300, fontStyle: 'italic', color: '#666', marginBottom: '32px', lineHeight: 1.3 }}>{upcoming.tytul}</p>
-              <p style={{ fontFamily: I, fontSize: '13px', marginBottom: '4px' }}>{fmtDate(upcoming.data_od)} &ndash; {fmtDate(upcoming.data_do)}</p>
-              <p style={{ fontFamily: I, fontSize: '13px', fontWeight: 600, marginBottom: '32px' }}>{upcoming.miejsce || 'Galeria ESTA, Gliwice'}</p>
-              {upcoming.opis_krotki && <p style={{ fontFamily: I, fontSize: '13px', color: '#444', lineHeight: 1.9, marginBottom: '40px' }}>{upcoming.opis_krotki}</p>}
-              <a href={`/wystawa/${upcoming.url_wystawy}`} className="arrow-link">&rarr; Wiecej o wystawie</a>
-            </div>
+      {/* AKTYWNI */}
+      <section style={{ padding: '64px 40px 0' }}>
+        <div style={{ borderBottom: '2px solid #111', paddingBottom: '12px' }}>
+          <p style={{ fontFamily: I, fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: '#999' }}>
+            Artysci galerii &mdash; {aktywni.length}
+          </p>
+        </div>
+        {aktywni.map((a, i) => (
+          <a key={i} href={`/artysta/${a.url_artysty || '#'}`} className="artist-row" style={rowStyle}>
+            <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2 }}>{a.nazwisko_i_imie}</p>
+            <p style={{ fontFamily: I, fontSize: '12px', color: '#888', alignSelf: 'center' }}>{a.dziedzina || ''}</p>
+            <p style={{ fontFamily: I, fontSize: '12px', color: '#bbb', alignSelf: 'center', textAlign: 'right' }}>{a.kraj || ''}</p>
+          </a>
+        ))}
+      </section>
+
+      {/* ARCHIWUM */}
+      {archiwum.length > 0 && (
+        <section style={{ padding: '64px 40px 96px' }}>
+          <div style={{ borderBottom: '1px solid #ebebeb', paddingBottom: '12px' }}>
+            <p style={{ fontFamily: I, fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: '#999' }}>
+              Archiwum &mdash; {archiwum.length}
+            </p>
           </div>
+          {archiwum.map((a, i) => (
+            <a key={i} href={`/artysta/${a.url_artysty || '#'}`} className="artist-row" style={{ ...rowStyle }}>
+              <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2, color: '#666' }}>{a.nazwisko_i_imie}</p>
+              <p style={{ fontFamily: I, fontSize: '12px', color: '#bbb', alignSelf: 'center' }}>{a.dziedzina || ''}</p>
+              <p style={{ fontFamily: I, fontSize: '12px', color: '#ddd', alignSelf: 'center', textAlign: 'right' }}>{a.kraj || ''}</p>
+            </a>
+          ))}
         </section>
       )}
-
-      {/* POZOSTALE WYSTAWY */}
-      <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '56px' }}>
-          <h2 style={{ fontFamily: C, fontSize: '28px', fontWeight: 400 }}>Wystawy</h2>
-          <a href="/wystawy" className="arrow-link">Wszystkie wystawy</a>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px 48px' }}>
-          {pozostaleWystawy.map((w, i) => (
-            <a key={i} href={`/wystawa/${w.url_wystawy}`} className="card-hover" style={{ display: 'block' }}>
-              <div style={{ overflow: 'hidden', marginBottom: '24px' }}>
-                <img src={w.img_plakat || ''} alt={w.tytul || ''} className="card-img" style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'start' }}>
-                <div>
-                  <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, marginBottom: '2px', lineHeight: 1.2 }}>{w.artysci_txt}</p>
-                  <p style={{ fontFamily: C, fontSize: '17px', fontWeight: 300, fontStyle: 'italic', color: '#666', lineHeight: 1.3 }}>{w.tytul}</p>
-                </div>
-                <p style={{ fontFamily: I, fontSize: '11px', color: '#999', whiteSpace: 'nowrap', lineHeight: 1.8, textAlign: 'right' }}>
-                  {w.data_od ? new Date(w.data_od).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' }) : ''}<br />
-                  {w.data_do ? new Date(w.data_do).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
-                </p>
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* AKTUALNE TARGI */}
-      <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb', background: '#faf9f7' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '64px', alignItems: 'start' }}>
-          <div>
-            <p style={{ fontFamily: C, fontSize: '13px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: '32px', color: '#111' }}>
-              Ostatnie targi
-            </p>
-            <h2 style={{ fontFamily: C, fontSize: 'clamp(24px,2.5vw,40px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '24px' }}>{aktualneTargi?.nazwa || ''}</h2>
-            <p style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, marginBottom: '4px' }}>{fmtDate(aktualneTargi?.data_od || null)} &ndash; {fmtDate(aktualneTargi?.data_do || null)}</p>
-            {aktualneTargi?.artysci_txt && <p style={{ fontFamily: C, fontSize: '17px', fontWeight: 300, color: '#555', lineHeight: 1.7, marginTop: '8px', marginBottom: '40px' }}>{aktualneTargi.artysci_txt}</p>}
-            <a href={`/targ/${aktualneTargi?.url_targu || ''}`} className="arrow-link">&rarr; Wiecej o targach</a>
-          </div>
-          <div style={{ overflow: 'hidden' }}>
-            {aktualneTargi?.img_cover
-              ? <img src={aktualneTargi.img_cover} alt={aktualneTargi.nazwa || ''} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
-              : <div style={{ aspectRatio: '4/3', background: '#e8e4de' }} />
-            }
-          </div>
-        </div>
-      </section>
-
-      {/* POZOSTALE TARGI */}
-      <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb', background: '#faf9f7' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '56px' }}>
-          <h2 style={{ fontFamily: C, fontSize: '28px', fontWeight: 400 }}>Targi</h2>
-          <a href="/targi" className="arrow-link">Wszystkie targi</a>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px 48px' }}>
-          {pozostaleTargi.map((t, i) => (
-            <a key={i} href={`/targ/${t.url_targu}`} className="card-hover" style={{ display: 'block' }}>
-              <div style={{ overflow: 'hidden', marginBottom: '24px', background: '#e8e8e8' }}>
-                {t.img_cover
-                  ? <img src={t.img_cover} alt={t.nazwa || ''} className="card-img" style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
-                  : <div style={{ aspectRatio: '4/3', background: '#e0ddd8' }} />
-                }
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'start' }}>
-                <p style={{ fontFamily: C, fontSize: '22px', fontWeight: 400, lineHeight: 1.2 }}>{t.nazwa}</p>
-                <p style={{ fontFamily: I, fontSize: '11px', color: '#999', whiteSpace: 'nowrap', lineHeight: 1.8, textAlign: 'right' }}>
-                  {t.data_od ? new Date(t.data_od).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' }) : ''}<br />
-                  {t.data_do ? new Date(t.data_do).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
-                </p>
-              </div>
-              {t.artysci_txt && <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.8, marginTop: '8px' }}>{t.artysci_txt}</p>}
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* ARTYSCI */}
-      <section style={{ padding: '80px 40px', borderTop: '1px solid #ebebeb', display: 'grid', gridTemplateColumns: '200px 1fr', gap: '80px', alignItems: 'start' }}>
-        <div>
-          <h2 style={{ fontFamily: C, fontSize: '28px', fontWeight: 400, marginBottom: '24px' }}>Artysci</h2>
-          <a href="/artysci" className="arrow-link">Wszyscy artysci</a>
-        </div>
-        <div style={{ columns: '3', columnGap: '40px' }}>
-          {(artysci || []).map(a => (
-            <a key={a.url_artysty || a.nazwisko_i_imie} href={`/artysta/${a.url_artysty || '#'}`} className="artist-link">
-              {a.nazwisko_i_imie}
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* VIEWING ROOM */}
-      <section style={{ padding: '96px 40px', borderTop: '1px solid #ebebeb', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '96px', alignItems: 'center' }}>
-        <div>
-          <p style={{ fontFamily: I, fontSize: '10px', letterSpacing: '.2em', textTransform: 'uppercase', color: '#999', marginBottom: '24px' }}>Oferty indywidualne</p>
-          <h2 style={{ fontFamily: C, fontSize: 'clamp(36px,4vw,56px)', fontWeight: 400, lineHeight: 1.05, marginBottom: '28px' }}>Viewing Room</h2>
-          <p style={{ fontFamily: I, fontSize: '13px', color: '#555', lineHeight: 1.9, marginBottom: '40px', maxWidth: '380px' }}>
-            Prywatne pokazy wyselekcjonowanych prac dla kolekcjonerow. Kazda oferta tworzona indywidualnie.
-          </p>
-          <a href="#" className="arrow-link">&rarr; Zapytaj o oferte</a>
-        </div>
-        <div style={{ background: '#f0ece5', aspectRatio: '4/3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ fontFamily: C, fontSize: '13px', fontStyle: 'italic', color: '#aaa' }}>Viewing Room — wkrotce</p>
-        </div>
-      </section>
 
       {/* FOOTER */}
       <footer style={{ background: '#111', padding: '64px 40px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '48px' }}>
