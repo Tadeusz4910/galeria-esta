@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import Nav from '@/components/Nav'
 
 export const revalidate = 0
 
@@ -62,18 +63,7 @@ export default async function Home() {
       `}</style>
 
       {/* NAWIGACJA */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '54px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,.96)', borderBottom: '1px solid #ebebeb' }}>
-        <a href="/" style={{ fontFamily: C, fontSize: '16px', fontWeight: 400, letterSpacing: '.2em', textTransform: 'uppercase' }}>Galeria ESTA</a>
-        <div style={{ display: 'flex', gap: '28px' }}>
-          <a href="/artysci" className="nav-link">Artysci</a>
-          <a href="/wystawy" className="nav-link">Wystawy</a>
-          <a href="/targi" className="nav-link">Targi</a>
-          {['Publikacje', 'Artykuly', 'Filmy', 'Oferta', 'Viewing Room', 'O nas'].map(item => (
-            <a key={item} href="#" className="nav-link">{item}</a>
-          ))}
-        </div>
-        <a href="#" className="nav-link" style={{ fontSize: '10px' }}>PL / EN</a>
-      </nav>
+      <Nav active="home" />
 
       {/* HERO – pelnoekranowe zdjecie */}
       <section style={{ paddingTop: '54px', height: '100vh', overflow: 'hidden' }}>
