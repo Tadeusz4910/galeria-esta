@@ -7,6 +7,16 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+// Pole nazwisko_i_imie ma format "Nazwisko Imie" -> wyswietlamy "Imie Nazwisko".
+// Nazwy zbiorowe (np. "Grupa Twozywo") i nazwy nie-2-wyrazowe zostawiamy bez zmian.
+function formatImieNazwisko(raw: string): string {
+  const n = (raw || '').trim().replace(/\s+/g, ' ')
+  if (!n) return ''
+  if (/^grupa\b/i.test(n)) return n
+  const parts = n.split(' ')
+  return parts.length === 2 ? `${parts[1]} ${parts[0]}` : n
+}
+
 export default async function ArtystaPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
@@ -50,6 +60,16 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
     .in('praca_id', praczeIds)
     .eq('typ', 'praca') : { data: [] }
 
+  // Zdjecie pracy na HERO: media powiazane z artysta (typ=praca).
+  // praca_id bywa NULL, dlatego laczymy po artysta_id. media.url to pelny URL do Storage.
+  const { data: heroMedia } = await supabase
+    .from('media')
+    .select('url, alt')
+    .eq('artysta_id', a.id)
+    .eq('typ', 'praca')
+    .order('created_at', { ascending: false })
+    .limit(1)
+
   const C = '"Cormorant Garamond", Georgia, serif'
   const I = '"Instrument Sans", sans-serif'
 
@@ -58,8 +78,15 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
   const getZdjeciePracy = (pracaId: string) =>
     zdjeciaPrac?.find(z => z.praca_id === pracaId)
 
-  const ideeGlowne = ideeArtysty?.filter(ia => ia.rola === 'glowna') || []
   const imie = a.nazwisko_i_imie?.trim() || ''
+  const imieNazwisko = formatImieNazwisko(a.nazwisko_i_imie || '')
+  const ideeWszystkie = ideeArtysty || []
+  const dlaczegoZdanie = (a.dlaczego_wazny || '').trim().split(/(?<=[.!?])\s/)[0] || ''
+
+  // HERO: zdjecie_hero -> praca z media (po artysta_id) -> placeholder. Nigdy portret (zdjecie_artysty).
+  const usingHero = !!(a.zdjecie_hero && a.zdjecie_hero.trim())
+  const heroSrc = usingHero ? a.zdjecie_hero : (heroMedia?.[0]?.url || '')
+  const heroAlt = usingHero ? (a.zdjecie_alt || imieNazwisko) : (heroMedia?.[0]?.alt || imieNazwisko)
 
   return (
     <main style={{ background: '#fff', color: '#111' }}>
@@ -82,66 +109,63 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
         .wystawa-row:first-child{border-top:1px solid #ebebeb;}
         .idea-card{background:#fff;padding:32px;display:block;transition:background .2s;}
         .idea-card:hover{background:#f9f9f7;}
+        .art-hero{display:flex;flex-direction:column;border-bottom:1px solid #ebebeb;padding-top:54px;}
+        .art-hero-media{background:#fff;display:flex;align-items:center;justify-content:center;padding:56px 32px;}
+        .art-hero-img{width:100%;max-width:340px;height:auto;display:block;}
+        .art-hero-ph{padding:48px;text-align:center;}
+        .art-hero-ph p{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(48px,18vw,96px);font-weight:300;color:#e3e0da;line-height:1;letter-spacing:.05em;}
+        .art-hero-info{display:flex;flex-direction:column;padding:8px 32px 64px;}
+        .art-hero-back{font-family:"Instrument Sans",sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#999;margin-bottom:40px;}
+        .art-hero-name{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(30px,6vw,52px);font-weight:300;line-height:1.05;letter-spacing:-.01em;margin-bottom:28px;}
+        .art-hero-idee{display:flex;flex-wrap:wrap;align-items:center;row-gap:6px;font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.22em;text-transform:lowercase;color:#999;margin-bottom:32px;}
+        .art-hero-idee-item{display:inline-flex;align-items:center;}
+        .art-hero-idee a{color:#999;transition:color .2s;}
+        .art-hero-idee a:hover{color:#111;}
+        .art-hero-idee .sep{color:#ccc;margin:0 10px;}
+        .art-hero-why{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:clamp(15px,1.6vw,19px);color:#777;line-height:1.5;max-width:440px;margin-bottom:40px;}
+        @media (min-width:900px){
+          .art-hero{flex-direction:row;min-height:80vh;}
+          .art-hero-media{flex:1;padding:80px;}
+          .art-hero-img{max-width:420px;}
+          .art-hero-info{flex:1;justify-content:center;padding:80px 64px;border-left:1px solid #ebebeb;}
+          .art-hero-back{margin-bottom:48px;}
+        }
       `}</style>
 
       {/* NAV */}
       <Nav active="artysci" />
 
       {/* HERO */}
-      <section style={{ paddingTop:'54px',minHeight:'80vh',display:'grid',gridTemplateColumns:'1fr 1fr',borderBottom:'1px solid #ebebeb' }}>
-        {/* Lewa – zdjecie lub placeholder */}
-        <div style={{ background:'#f5f3ef',display:'flex',alignItems:'center',justifyContent:'center',minHeight:'600px',position:'relative',overflow:'hidden' }}>
-          {a.zdjecie_artysty ? (
-            <img src={a.zdjecie_artysty} alt={imie} style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'top',position:'absolute',inset:0 }} />
+      <section className="art-hero">
+        {/* LEWA – praca artysty, z bialym marginesem ze wszystkich stron */}
+        <div className="art-hero-media">
+          {heroSrc ? (
+            <img src={heroSrc} alt={heroAlt} className="art-hero-img" />
           ) : (
-            <div style={{ textAlign:'center',padding:'40px' }}>
-              <p style={{ fontFamily:C,fontSize:'clamp(48px,6vw,96px)',fontWeight:300,color:'#ddd',lineHeight:1,letterSpacing:'.05em' }}>
-                {imie.split(' ')[0]?.[0]}{imie.split(' ')[1]?.[0]}
-              </p>
+            <div className="art-hero-ph">
+              <p>{imie.split(' ')[0]?.[0]}{imie.split(' ')[1]?.[0]}</p>
             </div>
           )}
-          {/* Etykieta krag programu */}
-          <div style={{ position:'absolute',bottom:'32px',left:'32px' }}>
-            <span style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',color:'#fff',background:'rgba(0,0,0,.5)',padding:'6px 12px' }}>
-              {a.kreg_programu === 'rdzen' ? 'Rdzen programu' : a.kreg_programu === 'poszerzony' ? 'Program poszerzony' : 'Artysta galerii'}
-            </span>
-          </div>
         </div>
 
-        {/* Prawa – dane */}
-        <div style={{ padding:'80px 64px',display:'flex',flexDirection:'column',justifyContent:'center',borderLeft:'1px solid #ebebeb' }}>
-          <a href="/artysci" style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.16em',textTransform:'uppercase',color:'#999',marginBottom:'56px',display:'block' }}>
-            &larr; Artysci
-          </a>
-
-          {a.haslo && (
-            <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',color:'#999',marginBottom:'20px' }}>
-              {a.haslo}
-            </p>
-          )}
-
-          <h1 style={{ fontFamily:C,fontSize:'clamp(36px,4vw,72px)',fontWeight:400,lineHeight:1.0,marginBottom:'40px',letterSpacing:'-.01em' }}>
-            {imie}
-          </h1>
-
-          {a.rola_w_programie && (
-            <p style={{ fontFamily:C,fontSize:'18px',fontWeight:300,color:'#555',lineHeight:1.7,marginBottom:'48px',maxWidth:'480px' }}>
-              {a.rola_w_programie}
-            </p>
-          )}
-
-          {/* Tagi idei */}
-          {ideeGlowne.length > 0 && (
-            <div style={{ display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'48px' }}>
-              {ideeGlowne.map((ia: any, i: number) => (
-                <a key={i} href={`/idee/${ia.idee?.slug}`} className="idea-tag">
-                  {ia.idee?.nazwa}
-                </a>
+        {/* PRAWA – lekko, z hierarchia */}
+        <div className="art-hero-info">
+          <a href="/artysci" className="art-hero-back">&larr; Artysci</a>
+          <h1 className="art-hero-name">{imieNazwisko}</h1>
+          {ideeWszystkie.length > 0 && (
+            <p className="art-hero-idee">
+              {ideeWszystkie.map((ia: any, i: number) => (
+                <span key={i} className="art-hero-idee-item">
+                  {i > 0 && <span className="sep">·</span>}
+                  <a href={`/idee/${ia.idee?.slug}`}>{(ia.idee?.nazwa || '').toLowerCase()}</a>
+                </span>
               ))}
-            </div>
+            </p>
           )}
-
-          <a href={`mailto:galeria@galeria-esta.pl?subject=Zapytanie o prace ${imie}`} className="arrow-link">
+          {dlaczegoZdanie && (
+            <p className="art-hero-why">{dlaczegoZdanie}</p>
+          )}
+          <a href={`mailto:galeria@galeria-esta.pl?subject=Zapytanie o prace ${imieNazwisko}`} className="arrow-link">
             &rarr; Zapytaj o prace artysty
           </a>
         </div>
@@ -170,37 +194,6 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
           <p style={{ fontFamily:C,fontSize:'17px',fontWeight:300,color:'#444',lineHeight:1.9,whiteSpace:'pre-line',maxWidth:'720px' }}>
             {a.biografia}
           </p>
-        </section>
-      )}
-
-      {/* IDEE – mapa pojec */}
-      {ideeGlowne.length > 0 && (
-        <section style={{ padding:'80px 40px',borderBottom:'1px solid #ebebeb' }}>
-          <div style={{ display:'grid',gridTemplateColumns:'200px 1fr',gap:'80px' }}>
-            <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',color:'#999' }}>Idee</p>
-            <div>
-              <p style={{ fontFamily:C,fontSize:'13px',fontWeight:400,letterSpacing:'.15em',textTransform:'uppercase',color:'#999',marginBottom:'40px' }}>
-                Kluczowe pojecia twórczości
-              </p>
-              <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:'1px',background:'#ebebeb' }}>
-                {ideeGlowne.map((ia: any, i: number) => (
-                  <a key={i} href={`/idee/${ia.idee?.slug}`} className="idea-card">
-                    <p style={{ fontFamily:C,fontSize:'22px',fontWeight:400,marginBottom:'12px' }}>
-                      {ia.idee?.nazwa}
-                    </p>
-                    {ia.idee?.opis_krotki && (
-                      <p style={{ fontFamily:I,fontSize:'12px',color:'#888',lineHeight:1.6,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden' }}>
-                        {ia.idee.opis_krotki}
-                      </p>
-                    )}
-                    <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.14em',textTransform:'uppercase',color:'#bbb',marginTop:'16px' }}>
-                      &rarr; Idea
-                    </p>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
         </section>
       )}
 
