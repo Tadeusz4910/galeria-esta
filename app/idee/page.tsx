@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import Nav from '@/components/Nav'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,19 +37,7 @@ export default async function IdeeStrona() {
       `}</style>
 
       {/* NAV */}
-      <nav style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'0 40px',height:'54px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.96)',borderBottom:'1px solid #ebebeb' }}>
-        <a href="/" style={{ fontFamily:C,fontSize:'16px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase' }}>Galeria ESTA</a>
-        <div style={{ display:'flex',gap:'28px' }}>
-          <a href="/artysci" className="nav-link">Artysci</a>
-          <a href="/wystawy" className="nav-link">Wystawy</a>
-          <a href="/targi" className="nav-link">Targi</a>
-          <a href="/idee" className="nav-link" style={{ opacity:1 }}>Idee</a>
-          {['Kolekcja','Kompendium','Viewing Room','O nas'].map(item => (
-            <a key={item} href="#" className="nav-link">{item}</a>
-          ))}
-        </div>
-        <a href="#" className="nav-link" style={{ fontSize:'10px' }}>PL / EN</a>
-      </nav>
+      <Nav active="idee" />
 
       {/* HERO */}
       <section style={{ paddingTop:'54px',padding:'120px 40px 80px',borderBottom:'1px solid #ebebeb',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'80px',alignItems:'end' }}>

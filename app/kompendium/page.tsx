@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import Nav from '@/components/Nav'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,31 +61,23 @@ export default async function KompendiumStrona() {
         .nav-link:hover{opacity:1;}
         .rozdz-karta:hover{background:#f9f9f7 !important;}
         .rozdz-karta-dark:hover{background:#1a1a18 !important;}
+        @media (max-width: 960px) {
+          .komp-hero { grid-template-columns: 1fr !important; gap: 36px !important; padding: 96px 24px 56px !important; }
+          .komp-title { font-size: clamp(40px, 13vw, 64px) !important; }
+        }
       `}</style>
 
       {/* NAV */}
-      <nav style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'0 40px',height:'54px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.96)',borderBottom:'1px solid #ebebeb' }}>
-        <a href="/" style={{ fontFamily:C,fontSize:'16px',fontWeight:400,letterSpacing:'.2em',textTransform:'uppercase' }}>Galeria ESTA</a>
-        <div style={{ display:'flex',gap:'28px' }}>
-          <a href="/artysci" className="nav-link">Artysci</a>
-          <a href="/wystawy" className="nav-link">Wystawy</a>
-          <a href="/idee" className="nav-link">Idee</a>
-          <a href="/kompendium" className="nav-link" style={{ opacity:1 }}>Kompendium</a>
-          {['Kolekcja','Viewing Room','O nas'].map(item => (
-            <a key={item} href="#" className="nav-link">{item}</a>
-          ))}
-        </div>
-        <a href="#" className="nav-link" style={{ fontSize:'10px' }}>PL / EN</a>
-      </nav>
+      <Nav active="kompendium" />
 
       {/* HERO */}
-      <section style={{ paddingTop:'54px',padding:'120px 40px 80px',borderBottom:'1px solid #ebebeb',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'80px',alignItems:'end' }}>
+      <section className="komp-hero" style={{ paddingTop:'54px',padding:'120px 40px 80px',borderBottom:'1px solid #ebebeb',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'80px',alignItems:'end' }}>
         <div>
           <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',color:'#999',marginBottom:'24px' }}>
             Galeria ESTA
           </p>
-          <h1 style={{ fontFamily:C,fontSize:'clamp(48px,6vw,96px)',fontWeight:400,lineHeight:.95,letterSpacing:'-.02em' }}>
-            Kompen<br />dium
+          <h1 className="komp-title" style={{ fontFamily:C,fontSize:'clamp(48px,6vw,96px)',fontWeight:400,lineHeight:.95,letterSpacing:'-.02em',whiteSpace:'nowrap' }}>
+            Kompendium
           </h1>
         </div>
         <div style={{ paddingBottom:'8px' }}>
