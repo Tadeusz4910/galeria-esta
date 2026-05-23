@@ -76,9 +76,15 @@ Zasób (prace prywatne), ceny, finanse, dane klientów — nigdy nie wychodzą n
 - `kolekcja_klienta`
 - `koszty`
 
-**ZOSTAŁO — WIDOKI** (inny mechanizm zabezpieczeń niż tabele; w Supabase oznaczone ikoną oka — **nie ruszać bez analizy**):
-- `klienci_profil`
-- `inwestycja_ramy`
+**ZROBIONE — WIDOKI** (zabezpieczone przez `REVOKE SELECT … FROM anon, authenticated` — potwierdzone testem: anon dostaje **HTTP 401**):
+- `klienci_profil` (wcześniej wyciekał 16 rek. z danymi osób + budżety + notatki)
+- `inwestycja_ramy` (wcześniej wyciekał 24 rek. z cenami zakupu/ramy/oferowaną i potencjalną marżą)
+
+Powód, dla którego sam RLS na tabelach bazowych ich nie blokował: w PostgreSQL klasyczny widok wykonuje się z uprawnieniami WŁAŚCICIELA (zwykle `postgres` z `BYPASSRLS`), nie zapytującego — czyli omija RLS tabel pod spodem.
+
+To pozostałości po migracji z Airtable. **Docelowo do przeprojektowania** zgodnie z nową wizją:
+- dane przeznaczone do publiki → osobne widoki `*_public` z `security_invoker = true` (PG 15+), tylko bezpieczne kolumny;
+- reszta widoków → poza zasięgiem anona (jak teraz), używane wyłącznie przez panel esta-crm (service_role / authenticated).
 
 **ZOSTAŁO — TABELE CZYTANE PRZEZ STRONĘ** (samo `enable RLS` ich nie zabezpieczy, bo strona MUSI je nadal odczytywać; wymagają **POLITYK**, nie tylko włączenia):
 - `artysci`, `prace`, `wystawy`, `targi`, `idee`, `media`, `kompendium` + tabele łączące.
@@ -87,5 +93,7 @@ Zasób (prace prywatne), ceny, finanse, dane klientów — nigdy nie wychodzą n
   - **polityki RLS** filtrujące wiersze po `publiczne/publiczna/widocznosc` + cofnięty `SELECT` na kolumnach wrażliwych: `cena_*`, `wartosc_*`, `notatki`, `uwagi`, `ai_*`, `proweniencja`.
 
 **DO SPRAWDZENIA.** Audyt anonem nie wykrywa nietypowych nazw tabel — przejrzeć w Supabase Table Editor, czy nie zostały czerwone etykiety „Unrestricted", szczególnie przy: `oferty`, `transakcje`, `sprzedaz`, `dopasowania`.
+
+**Środowisko.** PostgreSQL **17.6** (najnowsza wersja) — wszystkie mechanizmy bezpieczeństwa dostępne (RLS, `security_invoker` na widokach, polityki kolumnowe). **Brak potrzeby aktualizacji bazy.**
 
 **Uwaga techniczna.** Pełen draft polityk wymaga albo `SUPABASE_SERVICE_ROLE_KEY` (lokalnie w `.env.local`, **nigdy** w repo ani w czacie), albo ręcznej listy tabel z Dashboardu.
