@@ -64,3 +64,28 @@ Częste pola: `url_artysty`/`url_wystawy`/`url_targu`/`slug` (klucze w URL), `wi
 
 `npm run dev` (http://localhost:3000). Wymaga env: `NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_ANON_KEY` (poza repo — `.gitignore` wyklucza `.env*`).
+
+## BEZPIECZEŃSTWO / RLS — stan na 23.05.2026
+
+**ZASADA.** Strona (anon key) widzi WYŁĄCZNIE dane publiczne + oferty z tokenem.
+Zasób (prace prywatne), ceny, finanse, dane klientów — nigdy nie wychodzą na zewnątrz.
+
+**ZROBIONE** (RLS włączony, bez polityki — potwierdzone testem: anon zwraca 0 rekordów):
+- `klienci`
+- `klienci_dziedziny`, `klienci_oferowane`, `klienci_segmenty`, `klienci_style`
+- `kolekcja_klienta`
+- `koszty`
+
+**ZOSTAŁO — WIDOKI** (inny mechanizm zabezpieczeń niż tabele; w Supabase oznaczone ikoną oka — **nie ruszać bez analizy**):
+- `klienci_profil`
+- `inwestycja_ramy`
+
+**ZOSTAŁO — TABELE CZYTANE PRZEZ STRONĘ** (samo `enable RLS` ich nie zabezpieczy, bo strona MUSI je nadal odczytywać; wymagają **POLITYK**, nie tylko włączenia):
+- `artysci`, `prace`, `wystawy`, `targi`, `idee`, `media`, `kompendium` + tabele łączące.
+- Strategia do wyboru:
+  - **publiczne widoki** (np. `prace_public`, `artysci_public`, `wystawy_public`) z tylko bezpiecznymi kolumnami; strona czyta z widoków, anon nie ma dostępu do tabel bazowych; **albo**
+  - **polityki RLS** filtrujące wiersze po `publiczne/publiczna/widocznosc` + cofnięty `SELECT` na kolumnach wrażliwych: `cena_*`, `wartosc_*`, `notatki`, `uwagi`, `ai_*`, `proweniencja`.
+
+**DO SPRAWDZENIA.** Audyt anonem nie wykrywa nietypowych nazw tabel — przejrzeć w Supabase Table Editor, czy nie zostały czerwone etykiety „Unrestricted", szczególnie przy: `oferty`, `transakcje`, `sprzedaz`, `dopasowania`.
+
+**Uwaga techniczna.** Pełen draft polityk wymaga albo `SUPABASE_SERVICE_ROLE_KEY` (lokalnie w `.env.local`, **nigdy** w repo ani w czacie), albo ręcznej listy tabel z Dashboardu.
