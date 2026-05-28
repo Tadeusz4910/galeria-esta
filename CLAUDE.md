@@ -1,5 +1,6 @@
 @AGENTS.md
 @docs/ESTA-ARCHITEKTURA-SYSTEMU.md
+@docs/ESTA-PLAN-PRZEBUDOWY.md
 
 # Galeria ESTA — publiczna strona galerii
 
@@ -8,6 +9,8 @@ Next.js 16.2.6 (App Router) + React 19.2.4 + TypeScript. Hosting: **Vercel**.
 Dane w **Supabase**. Strona **tylko czyta** z bazy (anon key, `revalidate = 0`).
 
 > **Dokument nadrzędny.** [`docs/ESTA-ARCHITEKTURA-SYSTEMU.md`](docs/ESTA-ARCHITEKTURA-SYSTEMU.md) — strategia całego systemu (strona + panel esta-crm + oferty z tokenem + media/wideo + bezpieczeństwo + wielojęzyczność PL/EN/DE + plan wdrożenia w 4 fazach). Wczytany automatycznie przez import na górze pliku; ten CLAUDE.md opisuje wyłącznie warstwę techniczną tego repo (publicznej strony).
+>
+> **Plan wykonawczy.** [`docs/ESTA-PLAN-PRZEBUDOWY.md`](docs/ESTA-PLAN-PRZEBUDOWY.md) — operacyjny plan przebudowy bazy i panelu (13 obszarów, 4 etapy), podrzędny wobec dokumentu architektury powyżej.
 
 ## ⚠️ Dwa projekty, jedna baza
 
