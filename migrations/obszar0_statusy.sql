@@ -8,7 +8,9 @@
 --
 -- Zakres jednej transakcji:
 --   1. Backup tabeli prace (prace_backup_obszar0)
---   2. Nowy model statusów: widocznosc (4 wartości) + status_handlowy (4 wartości)
+--   2. Nowy model statusów: widocznosc (3 wartości: ukryta/kolekcja/archiwum)
+--      + status_handlowy (4 wartości) + rola_pracy (zasob/znana)
+--      + status_fizyczny (6 wartości)
 --      + migracja danych wg ustalonego mapowania (sumarycznie 108 wierszy)
 --      + usunięcie 4 redundantnych kolumn (status, publiczne, w_dorobku,
 --        dostepna_do_sprzedazy)
@@ -77,29 +79,29 @@ BEGIN
        AND widocznosc = 'kolekcja';
     GET DIAGNOSTICS n1 = ROW_COUNT;
 
-    -- 84 prac: dostepna + ukryty → zasob / dostepna
+    -- 84 prac: dostepna + ukryty → ukryta / dostepna
     UPDATE prace
-       SET widocznosc     = 'zasob',
+       SET widocznosc     = 'ukryta',
            status_handlowy = 'dostepna'
      WHERE status     = 'dostepna'
        AND widocznosc = 'ukryty';
     GET DIAGNOSTICS n2 = ROW_COUNT;
 
-    -- 9 prac: sprzedana → zasob / sprzedana
+    -- 9 prac: sprzedana → ukryta / sprzedana
     UPDATE prace
-       SET widocznosc     = 'zasob',
+       SET widocznosc     = 'ukryta',
            status_handlowy = 'sprzedana'
      WHERE status = 'sprzedana';
     GET DIAGNOSTICS n3 = ROW_COUNT;
 
-    -- 1 praca: niedostepna → zasob / niedostepna
+    -- 1 praca: niedostepna → ukryta / niedostepna
     UPDATE prace
-       SET widocznosc     = 'zasob',
+       SET widocznosc     = 'ukryta',
            status_handlowy = 'niedostepna'
      WHERE status = 'niedostepna';
     GET DIAGNOSTICS n4 = ROW_COUNT;
 
-    RAISE NOTICE 'Migracja statusów: kolekcja/dostepna=%, zasob/dostepna=%, zasob/sprzedana=%, zasob/niedostepna=%',
+    RAISE NOTICE 'Migracja statusów: kolekcja/dostepna=%, ukryta/dostepna=%, ukryta/sprzedana=%, ukryta/niedostepna=%',
                  n1, n2, n3, n4;
     RAISE NOTICE 'Suma: % wierszy (oczekiwane wg sondy: 108)', n1 + n2 + n3 + n4;
   ELSE
@@ -112,7 +114,7 @@ ALTER TABLE prace
   DROP CONSTRAINT IF EXISTS prace_widocznosc_check;
 ALTER TABLE prace
   ADD  CONSTRAINT prace_widocznosc_check
-       CHECK (widocznosc IN ('kolekcja', 'archiwum', 'zasob'));
+       CHECK (widocznosc IN ('ukryta', 'kolekcja', 'archiwum'));
 
 ALTER TABLE prace
   DROP CONSTRAINT IF EXISTS prace_status_handlowy_check;
@@ -124,12 +126,37 @@ ALTER TABLE prace
 ALTER TABLE prace ALTER COLUMN widocznosc      SET NOT NULL;
 ALTER TABLE prace ALTER COLUMN status_handlowy SET NOT NULL;
 
+-- Secure by default: nowe wiersze bez podanego widocznosc dostają 'ukryta'.
+ALTER TABLE prace ALTER COLUMN widocznosc SET DEFAULT 'ukryta';
+
 -- 2d. Usunięcie 4 redundantnych kolumn (informacja zawarta teraz w widocznosc
 -- + status_handlowy). status_wlasnosci ZOSTAJE bez zmian (NULL dozwolone).
 ALTER TABLE prace DROP COLUMN IF EXISTS status;
 ALTER TABLE prace DROP COLUMN IF EXISTS publiczne;
 ALTER TABLE prace DROP COLUMN IF EXISTS w_dorobku;
 ALTER TABLE prace DROP COLUMN IF EXISTS dostepna_do_sprzedazy;
+
+
+-- 2e. rola_pracy — czy praca należy do zasobu galerii czy jest „znana"
+-- (np. proweniencyjnie odnotowana ale poza zasobem).
+ALTER TABLE prace
+  ADD COLUMN IF NOT EXISTS rola_pracy text NOT NULL DEFAULT 'zasob';
+
+ALTER TABLE prace
+  DROP CONSTRAINT IF EXISTS prace_rola_pracy_check;
+ALTER TABLE prace
+  ADD  CONSTRAINT prace_rola_pracy_check
+       CHECK (rola_pracy IN ('zasob', 'znana'));
+
+-- 2f. status_fizyczny — gdzie praca fizycznie się znajduje.
+ALTER TABLE prace
+  ADD COLUMN IF NOT EXISTS status_fizyczny text NOT NULL DEFAULT 'w_galerii';
+
+ALTER TABLE prace
+  DROP CONSTRAINT IF EXISTS prace_status_fizyczny_check;
+ALTER TABLE prace
+  ADD  CONSTRAINT prace_status_fizyczny_check
+       CHECK (status_fizyczny IN ('w_galerii', 'u_klienta', 'u_artysty', 'na_wystawie', 'na_aukcji', 'nieznane'));
 
 
 -- -----------------------------------------------------------------------------
@@ -210,7 +237,8 @@ COMMIT;
 --   FROM prace
 --  GROUP BY 1, 2
 --  ORDER BY 3 DESC;
--- -- Oczekiwane: 84 zasob/dostepna, 14 kolekcja/dostepna, 9 zasob/sprzedana, 1 zasob/niedostepna.
+-- -- Oczekiwane: 14 kolekcja/dostepna, 84 ukryta/dostepna, 9 ukryta/sprzedana, 1 ukryta/niedostepna.
+-- -- Razem: 14 'kolekcja' + 94 'ukryta' + 0 'archiwum' = 108.
 --
 -- SELECT COUNT(*) FROM prace_backup_obszar0;   -- 108
 -- SELECT COUNT(*) FROM rynki;                  -- 7
