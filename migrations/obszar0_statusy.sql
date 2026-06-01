@@ -53,6 +53,12 @@ SELECT * FROM prace;
 ALTER TABLE prace
   ADD COLUMN IF NOT EXISTS status_handlowy text;
 
+-- 2a'. DROP starego CHECK na widocznosc PRZED blokiem UPDATE — stary constraint
+-- dopuszcza tylko ('glowny_nurt','kolekcja','ukryty','archiwum') i odrzuciłby
+-- UPDATE na nową wartość 'ukryta'. Nowy CHECK ustawiany w 2c.
+ALTER TABLE prace
+  DROP CONSTRAINT IF EXISTS prace_widocznosc_check;
+
 -- 2b. Migracja danych — warunkowo, tylko gdy stara kolumna `status` jeszcze
 -- istnieje (tzn. pierwszy run migracji). Po jej DROP-ie w sekcji 2d
 -- powtórny run pomija ten blok.
@@ -110,8 +116,6 @@ BEGIN
 END $$;
 
 -- 2c. CHECK constraints — dozwolone wartości dla obu kolumn statusu.
-ALTER TABLE prace
-  DROP CONSTRAINT IF EXISTS prace_widocznosc_check;
 ALTER TABLE prace
   ADD  CONSTRAINT prace_widocznosc_check
        CHECK (widocznosc IN ('ukryta', 'kolekcja', 'archiwum'));
