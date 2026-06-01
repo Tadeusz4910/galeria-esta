@@ -35,6 +35,96 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 
 -- -----------------------------------------------------------------------------
+-- 0a'. PRE-FLIGHT CHECK — pełna inwentaryzacja zależności i wartości.
+-- -----------------------------------------------------------------------------
+-- Cel: znaleźć WSZYSTKIE pułapki na początku transakcji. Albo PASS, albo
+-- EXCEPTION z czytelną listą — żadnych niespodzianek w połowie migracji.
+DO $$
+DECLARE
+  doomed_cols   text[] := ARRAY['status','publiczne','w_dorobku','dostepna_do_sprzedazy'];
+  handled_views text[] := ARRAY['prace_do_oferty','prace_pelne','prace_public'];
+  problems text;
+  warning  text;
+BEGIN
+  -- (1) Obiekty zależne od kolumn usuwanych w 2d: views, matviews, sekwencje
+  -- (pg_depend) + FK celujące w te kolumny (pg_constraint). Pomijamy widoki
+  -- obsłużone przez DROP VIEW IF EXISTS poniżej.
+  WITH deps AS (
+    SELECT format('%s %I.%I (kolumna: %I)',
+             CASE c.relkind WHEN 'v' THEN 'view'
+                            WHEN 'm' THEN 'matview'
+                            WHEN 'r' THEN 'table'
+                            WHEN 'S' THEN 'sequence'
+                            ELSE c.relkind::text END,
+             n.nspname, c.relname, a.attname) AS obj_desc
+      FROM pg_depend d
+      JOIN pg_class src       ON src.oid = d.refobjid
+      JOIN pg_attribute a     ON a.attrelid = src.oid AND a.attnum = d.refobjsubid
+      JOIN pg_class c         ON c.oid = d.objid
+      JOIN pg_namespace n     ON n.oid = c.relnamespace
+     WHERE src.relname = 'prace'
+       AND a.attname   = ANY(doomed_cols)
+       AND c.relname  <> ALL(handled_views)
+    UNION ALL
+    SELECT format('FK %I.%I (constraint %I → prace.%I)',
+             n.nspname, c2.relname, con.conname, a.attname) AS obj_desc
+      FROM pg_constraint con
+      JOIN pg_class c2        ON c2.oid = con.conrelid
+      JOIN pg_namespace n     ON n.oid = c2.relnamespace
+      JOIN pg_attribute a     ON a.attrelid = con.confrelid AND a.attnum = ANY(con.confkey)
+     WHERE con.contype  = 'f'
+       AND con.confrelid = 'prace'::regclass
+       AND a.attname    = ANY(doomed_cols)
+  )
+  SELECT string_agg(obj_desc, E'\n  ') INTO problems FROM deps;
+
+  IF problems IS NOT NULL THEN
+    RAISE EXCEPTION E'Pre-flight FAIL: zależne obiekty, obsłuż je przed migracją:\n  %', problems;
+  END IF;
+
+  -- (2) Widoki używające widocznosc='ukryty' (stara wartość). Tylko OSTRZEŻENIE —
+  -- po migracji wartość = 'ukryta', te widoki przestaną zwracać dane.
+  SELECT string_agg(schemaname || '.' || viewname, ', ') INTO warning
+    FROM pg_views
+   WHERE schemaname NOT IN ('pg_catalog','information_schema')
+     AND definition ~ 'widocznosc\s*=\s*''ukryty''';
+
+  IF warning IS NOT NULL THEN
+    RAISE NOTICE 'OSTRZEŻENIE: widoki używają widocznosc=''ukryty'' (po migracji ''ukryta''): %', warning;
+  END IF;
+
+  -- (3) Sanity wartości w kolumnach migrowanych (status, widocznosc). NULL też zakazany.
+  SELECT string_agg(DISTINCT COALESCE(quote_literal(status), 'NULL'), ', ') INTO problems
+    FROM prace
+   WHERE status IS NULL
+      OR status NOT IN ('dostepna','sprzedana','niedostepna','depozyt','rezerwacja','glowny_nurt');
+
+  IF problems IS NOT NULL THEN
+    RAISE EXCEPTION 'Pre-flight FAIL: nieoczekiwana wartość prace.status: %', problems;
+  END IF;
+
+  SELECT string_agg(DISTINCT COALESCE(quote_literal(widocznosc), 'NULL'), ', ') INTO problems
+    FROM prace
+   WHERE widocznosc IS NULL
+      OR widocznosc NOT IN ('ukryty','kolekcja','archiwum','glowny_nurt');
+
+  IF problems IS NOT NULL THEN
+    RAISE EXCEPTION 'Pre-flight FAIL: nieoczekiwana wartość prace.widocznosc: %', problems;
+  END IF;
+
+  RAISE NOTICE 'Pre-flight check: PASS. Wszystkie zależności i wartości znane, można kontynuować.';
+END $$;
+
+
+-- Usuwamy widoki pomocnicze które używają starych kolumn (status, widocznosc='ukryty' itd.).
+-- Panel ich nie używa (zweryfikowane). Jeśli kiedyś będą potrzebne — odtworzymy
+-- z nową strukturą w osobnym obszarze.
+DROP VIEW IF EXISTS prace_do_oferty;
+DROP VIEW IF EXISTS prace_pelne;
+DROP VIEW IF EXISTS prace_public;
+
+
+-- -----------------------------------------------------------------------------
 -- 1. BACKUP — bezpiecznik przed jakąkolwiek zmianą
 -- -----------------------------------------------------------------------------
 -- Snapshot tabeli prace w obecnym kształcie (wszystkie kolumny, wszystkie wiersze).
