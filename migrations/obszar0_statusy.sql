@@ -35,26 +35,46 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 
 -- -----------------------------------------------------------------------------
+-- 0. HIGIENICZNE USUWANIE ZNANYCH OBIEKTÓW przed pre-flight i migracją.
+-- -----------------------------------------------------------------------------
+-- Wszystko co znamy i wiemy że trzeba usunąć — w jednym miejscu, przed
+-- pre-flight. Dzięki temu pre-flight szuka tylko NIEZNANYCH zależności,
+-- bez exclusion-list dla każdego znanego obiektu.
+
+-- Widoki używające usuwanych kolumn (panel ich nie używa — zweryfikowane).
+DROP VIEW IF EXISTS prace_do_oferty;
+DROP VIEW IF EXISTS prace_pelne;
+DROP VIEW IF EXISTS prace_public;
+
+-- Indeks na usuwanej kolumnie 'status' (zastąpiony przez idx_prace_status_handlowy w 2g).
+DROP INDEX IF EXISTS idx_prace_status;
+
+-- Stary CHECK na widocznosc — dopuszczał ('glowny_nurt','kolekcja','ukryty','archiwum')
+-- i odrzuciłby UPDATE na 'ukryta' w 2b. Nowy CHECK ustawiany w 2c.
+ALTER TABLE prace DROP CONSTRAINT IF EXISTS prace_widocznosc_check;
+
+
+-- -----------------------------------------------------------------------------
 -- 0a'. PRE-FLIGHT CHECK — pełna inwentaryzacja zależności i wartości.
 -- -----------------------------------------------------------------------------
 -- Cel: znaleźć WSZYSTKIE pułapki na początku transakcji. Albo PASS, albo
 -- EXCEPTION z czytelną listą — żadnych niespodzianek w połowie migracji.
 DO $$
 DECLARE
-  doomed_cols   text[] := ARRAY['status','publiczne','w_dorobku','dostepna_do_sprzedazy'];
-  handled_views text[] := ARRAY['prace_do_oferty','prace_pelne','prace_public'];
+  doomed_cols text[] := ARRAY['status','publiczne','w_dorobku','dostepna_do_sprzedazy'];
   problems text;
   warning  text;
 BEGIN
-  -- (1) Obiekty zależne od kolumn usuwanych w 2d: views, matviews, sekwencje
-  -- (pg_depend) + FK celujące w te kolumny (pg_constraint). Pomijamy widoki
-  -- obsłużone przez DROP VIEW IF EXISTS poniżej.
+  -- (1) Obiekty zależne od kolumn usuwanych w 2d: views, matviews, sekwencje,
+  -- indeksy (pg_depend) + FK celujące w te kolumny (pg_constraint). Znane
+  -- obiekty zostały już sprzątnięte w sekcji 0 — pre-flight szuka tylko nieznanych.
   WITH deps AS (
     SELECT format('%s %I.%I (kolumna: %I)',
              CASE c.relkind WHEN 'v' THEN 'view'
                             WHEN 'm' THEN 'matview'
                             WHEN 'r' THEN 'table'
                             WHEN 'S' THEN 'sequence'
+                            WHEN 'i' THEN 'index'
                             ELSE c.relkind::text END,
              n.nspname, c.relname, a.attname) AS obj_desc
       FROM pg_depend d
@@ -64,7 +84,6 @@ BEGIN
       JOIN pg_namespace n     ON n.oid = c.relnamespace
      WHERE src.relname = 'prace'
        AND a.attname   = ANY(doomed_cols)
-       AND c.relname  <> ALL(handled_views)
     UNION ALL
     SELECT format('FK %I.%I (constraint %I → prace.%I)',
              n.nspname, c2.relname, con.conname, a.attname) AS obj_desc
@@ -116,14 +135,6 @@ BEGIN
 END $$;
 
 
--- Usuwamy widoki pomocnicze które używają starych kolumn (status, widocznosc='ukryty' itd.).
--- Panel ich nie używa (zweryfikowane). Jeśli kiedyś będą potrzebne — odtworzymy
--- z nową strukturą w osobnym obszarze.
-DROP VIEW IF EXISTS prace_do_oferty;
-DROP VIEW IF EXISTS prace_pelne;
-DROP VIEW IF EXISTS prace_public;
-
-
 -- -----------------------------------------------------------------------------
 -- 1. BACKUP — bezpiecznik przed jakąkolwiek zmianą
 -- -----------------------------------------------------------------------------
@@ -142,12 +153,6 @@ SELECT * FROM prace;
 -- 2a. Nowa kolumna status_handlowy (nullable na czas migracji, NOT NULL na końcu).
 ALTER TABLE prace
   ADD COLUMN IF NOT EXISTS status_handlowy text;
-
--- 2a'. DROP starego CHECK na widocznosc PRZED blokiem UPDATE — stary constraint
--- dopuszcza tylko ('glowny_nurt','kolekcja','ukryty','archiwum') i odrzuciłby
--- UPDATE na nową wartość 'ukryta'. Nowy CHECK ustawiany w 2c.
-ALTER TABLE prace
-  DROP CONSTRAINT IF EXISTS prace_widocznosc_check;
 
 -- 2b. Migracja danych — warunkowo, tylko gdy stara kolumna `status` jeszcze
 -- istnieje (tzn. pierwszy run migracji). Po jej DROP-ie w sekcji 2d
@@ -251,6 +256,12 @@ ALTER TABLE prace
 ALTER TABLE prace
   ADD  CONSTRAINT prace_status_fizyczny_check
        CHECK (status_fizyczny IN ('w_galerii', 'u_klienta', 'u_artysty', 'na_wystawie', 'na_aukcji', 'nieznane'));
+
+-- 2g. Indeksy na nowych kolumnach migrowanych w 2c/2e/2f. Zastępują funkcjonalnie
+-- usunięty idx_prace_status (filtry list w panelu lecą teraz po status_handlowy).
+CREATE INDEX IF NOT EXISTS idx_prace_status_handlowy ON prace (status_handlowy);
+CREATE INDEX IF NOT EXISTS idx_prace_widocznosc      ON prace (widocznosc);
+CREATE INDEX IF NOT EXISTS idx_prace_rola_pracy      ON prace (rola_pracy);
 
 
 -- -----------------------------------------------------------------------------
