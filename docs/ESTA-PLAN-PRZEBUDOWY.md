@@ -84,19 +84,42 @@ Ortogonalnie: `status_handlowy` (dostepna / zarezerwowana / sprzedana) — bo sp
 
 ---
 
-### OBSZAR 2 — IDEE + POJĘCIA (przebudowa) 🔴
-**Jak jest:** `idee` = 34 rekordy w starym modelu (`kategoria`: glowna/rozszerzona, `rodzina_idei`: 8 rodzin). Miesza idee z pojęciami. `pojecia` NIE istnieje. Panel ma multiselect idei dla artysty (`ms-a-idee`) zapisujący do `idee_glowne_txt`.
+### OBSZAR 2 — IDEE + POJĘCIA (przebudowa) ✅
 
-**Jak ma być (wg konceptu idei):**
-- `idee` = **6 idei głównych** + blok współczesny (Idea/Język, Słowo/Znak, Geometria/Struktura, Światło/Przestrzeń, Pamięć/Archiwum, Obraz/Komunikat)
-- nowa tabela `pojecia` z polami: `nazwa`, `nazwa_en`, `nazwa_de`, `slug`, `idea_glowna_id` (FK→idee), `status_publiczny` (ukryte/sygnał/tag/filtr/strona), `etap_wdrozenia`, `meta_index`, `opis_krotki`, SEO
-- powiązania przez tabele łączące (już są: `idee_artysci`, `idee_prace`, `idee_idee`, `idee_teksty`; dodać `pojecia_artysci`, `pojecia_prace`)
+**Status:** ZROBIONE czerwiec 2026 (commit 7b592d5)
 
-**Baza:** wyczyścić starą `idee`, przebudować na 6 (zachować pola EN i strukturę kolumn — usunąć `kategoria`, `rodzina_idei`, dodać brakujące); stworzyć `pojecia` + `pojecia_artysci` + `pojecia_prace`; dodać `_de` do idee.
+**Jak było (przed migracją):**
+- 35 idei w jednej tabeli (mieszanka idei głównych i pojęć pomocniczych)
+- 8 starych rodzin (`kategoria`: glowna/rozszerzona + `rodzina_idei` jako stringi)
+- 5 tabel łączących M:N (`idee_artysci` 7 rekordów, `idee_idee` 44 samoreferencje, reszta puste)
+- 6 kolumn `_txt` w `artysci`/`prace`/`wystawy`/`targi`/`oferty` (powiązania jako stringi przecinkowe)
 
-**Panel:** dostosować multiselect idei (z `_txt` → relacja `idee_artysci`/`idee_prace`); dodać moduł wprowadzania idei (6) i pojęć (z etapami); przy artyście/pracy: wybór 1 idei głównej + N pojęć.
+**Jak jest (po migracji):**
+- 7 idei (6 głównych + 1 `wspolczesne_kontynuacje`) z polem `typ` jako enum w CHECK
+- 45 pojęć w osobnej tabeli `pojecia` z FK `idea_glowna_id` (ON DELETE RESTRICT)
+- Statusy publiczne 5-stopniowe: `ukryte`/`sygnal`/`tag_publiczny`/`klikalny_filtr`/`strona_pojecia`
+- Etapy wdrożenia 4-stopniowe: `etap_1_sygnal` → `etap_4_strona_pojecia`
+- 36 pojęć ze statusem `sygnal`, 9 z `tag_publiczny` (etap startowy)
+- 4 nowe tabele M:N (puste, do ręcznego wypełnienia w panelu): `artysci_idee` (z polem `rola`: glowna/uzupelniajaca), `pojecia_artysci`, `pojecia_prace`, `pojecia_wystawy`
+- 3 nowe FK `idea_glowna_id` na `artysci`/`prace`/`wystawy` (single, nullable, ON DELETE SET NULL)
+- Pełna trójjęzyczność `_pl`/`_en`/`_de` od fundamentu (planowane było tylko EN)
 
-**Trudność:** 🔴 — przebudowa modelu + nowa tabela + nowy moduł panelu. Fundamentalne dla nawigacji „przez idee".
+**Świadome decyzje:**
+- Bez backupu — 11 wartości w starym modelu (7 par Kozłowskiego w `idee_artysci` + 3 stringi `idee_glowne_txt` + 1 wystawa Recycled news) Tadeusz odtworzy ręcznie w panelu po migracji
+- Wartości statusów w CHECK constraint na poziomie bazy, nie w aplikacji
+- Sub-SELECT po slug idei w seedzie pojęć zamiast hardcoded UUID
+- ON DELETE strategie świadomie wybrane: RESTRICT dla `pojecia→idee` (bezpiecznik), SET NULL dla single FK na głównych tabelach, CASCADE dla tabel M:N
+
+**Lekcje wzorca migracyjnego z Obszaru 0 sprawdzone:**
+- BEGIN/COMMIT z RAISE EXCEPTION zatrzymuje migrację przy najmniejszej rozbieżności
+- Sekcja higieniczna PRZED pre-flight (clean-known) — bez nieudanych prób tym razem
+- Pre-flight szuka tylko NIEZNANYCH zależności (po sprzątaniu znanych)
+- Weryfikacja końcowa z licznikami w DO block flaguje wszystko jeszcze przed COMMIT
+
+**Co następne:**
+- Panel CRM: multiselect `idea_glowna_id` w formularzach artysty/pracy/wystawy + edycja 45 pojęć (osobne sesje)
+- Strona Next.js: `/idee/` z 7 planszami + podstrony `/idee/[slug]/` (osobna sesja)
+- Ręczne przypisania w panelu: idee i pojęcia dla artystów, prac, wystaw (Tadeusz)
 
 ---
 
@@ -224,9 +247,8 @@ Ortogonalnie: `status_handlowy` (dostepna / zarezerwowana / sprzedana) — bo sp
 - martwe pola `_txt` (wszędzie) — OBSZAR 1, 2, 10
 - duplikaty pól w wystawy/targi — OBSZAR 10
 - ewentualnie `dokumenty_artysci`/`dokumenty_prace` jeśli nieużywane
-- stare pola idei (`kategoria`, `rodzina_idei`) — OBSZAR 2
 
-**Widoki (nie tabele) — zostają:** `prace_pelne`, `prace_do_oferty`, `klienci_profil`, `inwestycja_ramy`.
+**Widoki (nie tabele) — zostają:** `klienci_profil`, `inwestycja_ramy`. (`prace_pelne` i `prace_do_oferty` skasowane w Obszarze 0, commit cd212c6 — sekcja higieniczna DROP VIEW)
 
 **Trudność:** 🟢 — usuwanie po weryfikacji.
 
@@ -237,8 +259,8 @@ Ortogonalnie: `status_handlowy` (dostepna / zarezerwowana / sprzedana) — bo sp
 Zasada: od fundamentu do nadbudowy; baza+panel każdego obszaru razem; testować po każdym.
 
 **ETAP I — rdzeń klasyfikacji i idei (fundament nawigacji):**
-1. Obszar 0 (statusy widoczności prac: kolekcja/archiwum/oferta/zasób) — 🟡 fundament, definiuje archiwum/viewing-room
-2. Obszar 2 (idee+pojęcia) — 🔴 najważniejszy, wszystko od niego zależy
+1. Obszar 0 (statusy widoczności prac: kolekcja/archiwum/oferta/zasób) — ✅ ZROBIONE maj 2026 (fundament, definiuje archiwum/viewing-room)
+2. Obszar 2 (idee+pojęcia) — ✅ ZROBIONE czerwiec 2026 (rdzeń nawigacji „przez idee")
 3. Obszar 1 (klasyfikacja txt→relacje) — 🟢
 4. Obszar 10 (wystawy/targi porządki + relacje) — 🟡
 
