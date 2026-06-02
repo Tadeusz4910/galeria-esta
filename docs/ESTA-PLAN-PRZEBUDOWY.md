@@ -26,10 +26,29 @@ Legenda trudności: 🟢 łatwe · 🟡 średnie · 🔴 trudne/wymaga uwagi
 
 ---
 
-### OBSZAR 0 — STATUSY WIDOCZNOŚCI PRAC (fundament: kolekcja / archiwum / oferta / zasób) 🟡
+### OBSZAR 0 — STATUSY WIDOCZNOŚCI PRAC (fundament: kolekcja / archiwum / oferta / zasób) ✅
+
+**Status:** ✅ **ZROBIONE** — czerwiec 2026  
+**Commits:** `1441367` (migracja statusów + International + rynki + wielojęzyczność) → `d85ec39` (rozszerzenie modelu: rola_pracy + status_fizyczny) → `74e521c` (fix CHECK kolejność) → `bc9e06b` (pre-flight + DROP VIEW) → `cd212c6` (restrukturyzacja clean-known → check-unknown)  
+**Stan bazy:** 108 prac zmigrowane (14 kolekcja/dostepna, 84 ukryta/dostepna, 9 ukryta/sprzedana, 1 ukryta/niedostepna). Backup `prace_backup_obszar0` zachowany.  
+**Stan panelu:** 3 pliki dostosowane (24 edyty), wgrane przez Transmit, działa.
+
+**Lekcje dla kolejnych obszarów (wzorzec do powielenia):**
+1. Każda migracja w transakcji `BEGIN/COMMIT` — rollback przy każdym błędzie chroni dane
+2. Sekcja "0. Higieniczne usuwanie znanych obiektów" PRZED pre-flight: `DROP VIEW`/`INDEX`/`CONSTRAINT` zależne od kolumn które będą usuwane
+3. Sekcja "0a' Pre-flight check" — DO block sprawdzający NIEZNANE zależności (views, matviews, FK, indeksy) + sanity check wartości w danych. `RAISE EXCEPTION` zatrzymuje migrację z czytelną listą pułapek.
+4. Backup tabeli (`CREATE TABLE ... AS SELECT ...`) na początku transakcji — bezpiecznik na rollback po commicie
+5. Migracja danych w bloku DO z warunkowym IF (`kolumna_stara IS NULL OR ...`) — idempotency na ponowne uruchomienia
+6. `CREATE INDEX` na nowych kolumnach których panel używa do filtrów — performance od początku
+7. Sekwencja: clean-known → check-unknown → backup → migrate → verify
+
+Te zasady stosować w Obszarach 1–12.
+
+---
+
 **To jest fundament całego modelu „wprowadzam raz, status decyduje gdzie widoczne". Definiuje m.in. ARCHIWUM (viewing-room).**
 
-**Jak jest:** `prace` ma 5 pól sterujących widocznością, które muszą być ręcznie spójne: `status` (dostepna/sprzedana/niedostepna), `widocznosc` (ukryty/kolekcja), `publiczne` (bool), `w_dorobku` (bool), `dostepna_do_sprzedazy` (bool). To mylące i podatne na błędy (5 pól zamiast jednej decyzji).
+**Jak było (przed migracją):** `prace` ma 5 pól sterujących widocznością, które muszą być ręcznie spójne: `status` (dostepna/sprzedana/niedostepna), `widocznosc` (ukryty/kolekcja), `publiczne` (bool), `w_dorobku` (bool), `dostepna_do_sprzedazy` (bool). To mylące i podatne na błędy (5 pól zamiast jednej decyzji).
 
 **Jak ma być:** jeden czytelny wymiar widoczności (gdzie praca się pokazuje) + osobny status handlowy (czy dostępna):
 
