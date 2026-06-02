@@ -88,6 +88,10 @@ Ortogonalnie: `status_handlowy` (dostepna / zarezerwowana / sprzedana) — bo sp
 
 **Status:** ZROBIONE czerwiec 2026 (commit 7b592d5)
 
+**Sesja A SQL: ✅** — ukończona 2026-06-02 (commit `4c617af`). Migracja `obszar2_uzupelnienie.sql` uruchomiona pomyślnie z PASS na wszystkich sekcjach. Stan po migracji: 8 tabel z `idea_glowna_id` (7 encji programu + słownik `pojecia`), 7 tabel M:N pojęć (po jednej dla każdej z 7 encji), 66 nowych kolumn (idea_glowna_id na 4 encjach + International + EN/DE), 22 nowe indeksy.
+
+**Częściowe pokrycie Obszaru 9:** zgodnie z zasadą „raz, kompletnie, bez powrotów" Sesja A wprowadziła International + EN/DE dla 6 encji (`artysci`/`wystawy`/`targi`/`oferty`/`artykuly`/`kompendium`): pole `int_publiczne` na wszystkich 6, `int_visual_wall` na 4 (bez `targi`/`oferty` — decyzja kuratorska), kompletna wielojęzyczność EN+DE (66 pól tekstowych). Po tej migracji żaden kolejny obszar nie dodaje pól strukturalnych do 7 encji programu galerii.
+
 **Jak było (przed migracją):**
 - 35 idei w jednej tabeli (mieszanka idei głównych i pojęć pomocniczych)
 - 8 starych rodzin (`kategoria`: glowna/rozszerzona + `rodzina_idei` jako stringi)
@@ -202,6 +206,14 @@ Ortogonalnie: `status_handlowy` (dostepna / zarezerwowana / sprzedana) — bo sp
 ---
 
 ### OBSZAR 9 — INTERNATIONAL (flagi, rynki, segmenty) 🟡
+
+**Częściowo zrobione (Sesja A Obszaru 2, commit `4c617af`, 2026-06-02):**
+- `int_publiczne` na 6 encjach (`artysci`/`wystawy`/`targi`/`oferty`/`artykuly`/`kompendium`)
+- `int_visual_wall` na 4 encjach (`artysci`/`wystawy`/`artykuly`/`kompendium`)
+- Kompletna wielojęzyczność EN+DE na 6 encjach (66 pól tekstowych)
+
+**Do zrobienia w pełnym Obszarze 9:** 7 pól `int_*` szczegółowych (`int_priorytet`, `int_segment`, `int_status`, `int_related`, `int_notatki`, …) + segmentacja rynków + szczegóły wg konceptu International (Visual Wall content, hreflang, schema.org VisualArtwork, SEO niemieckie).
+
 **Jak jest:** brak warstwy International. `segmenty` istnieje (z SEO). `artysci` ma już jakieś pola int (do sprawdzenia).
 
 **Jak ma być (wg konceptu International):** flagi `int_publiczne`, `int_priorytet`, `rynek_priorytetowy` (multi: DACH/Italy/Central Europe/...), `cena_eur`, `int_visual_wall` na pracach; `int_artysta`, `int_kraj` na artystach. Segmenty EN/DE = idee/pojęcia po angielsku/niemiecku (nie nowy słownik). Publicznie „International Program", DACH operacyjnie.
@@ -260,7 +272,7 @@ Zasada: od fundamentu do nadbudowy; baza+panel każdego obszaru razem; testować
 
 **ETAP I — rdzeń klasyfikacji i idei (fundament nawigacji):**
 1. Obszar 0 (statusy widoczności prac: kolekcja/archiwum/oferta/zasób) — ✅ ZROBIONE maj 2026 (fundament, definiuje archiwum/viewing-room)
-2. Obszar 2 (idee+pojęcia) — ✅ ZROBIONE czerwiec 2026 (rdzeń nawigacji „przez idee")
+2. Obszar 2 (idee+pojęcia) — ✅ ZROBIONE czerwiec 2026, Sesja A SQL ukończona 2026-06-02 (rdzeń nawigacji „przez idee")
 3. Obszar 1 (klasyfikacja txt→relacje) — 🟢
 4. Obszar 10 (wystawy/targi porządki + relacje) — 🟡
 
