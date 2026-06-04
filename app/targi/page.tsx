@@ -1,12 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 import Nav from '@/components/Nav'
 
 export const revalidate = 0
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 export default async function TargiPage() {
   const { data: targi } = await supabase
