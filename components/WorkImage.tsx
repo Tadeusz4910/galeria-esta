@@ -13,18 +13,20 @@ const C = '"Cormorant Garamond", Georgia, serif'
 export default function WorkImage({ src, alt }: WorkImageProps) {
   const [error, setError] = useState(false)
 
-  if (!src || error) {
-    return (
-      <div
-        style={{
-          aspectRatio: '4/3',
-          backgroundColor: '#f4f1ec',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px solid #e7e0d7',
-        }}
-      >
+  return (
+    <div
+      style={{
+        width: '100%',
+        aspectRatio: '4 / 4.85',
+        backgroundColor: '#fbfaf8',
+        border: '1px solid #f0ebe2',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      {!src || error ? (
         <span
           style={{
             fontFamily: C,
@@ -35,35 +37,21 @@ export default function WorkImage({ src, alt }: WorkImageProps) {
         >
           ESTA
         </span>
-      </div>
-    )
-  }
-
-  return (
-    <div
-      style={{
-        aspectRatio: '4/3',
-        backgroundColor: '#fbfaf8',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        onError={() => setError(true)}
-        style={{
-          maxWidth: '100%',
-          maxHeight: '100%',
-          width: 'auto',
-          height: 'auto',
-          objectFit: 'contain',
-          display: 'block',
-        }}
-      />
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          onError={() => setError(true)}
+          style={{
+            maxWidth: '100%',
+            maxHeight: '100%',
+            width: 'auto',
+            height: 'auto',
+            objectFit: 'contain',
+          }}
+        />
+      )}
     </div>
   )
 }
