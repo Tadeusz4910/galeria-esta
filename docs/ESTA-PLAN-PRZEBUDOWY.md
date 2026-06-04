@@ -141,6 +141,37 @@ Ortogonalnie: `status_handlowy` (dostepna / zarezerwowana / sprzedana) — bo sp
 ---
 
 ### OBSZAR 4 — OFERTY (oferty_prace, token) 🟡
+
+**Status (baza):** ✅ ZROBIONE czerwiec 2026 (commit `b00bdc6`, 2026-06-04). Migracja `migrations/obszar4_oferty.sql` (585 linii) uruchomiona pomyślnie. Dokument koncepcyjny `docs/OBSZAR-4-OFERTY.md` (1302 linie).
+
+**Stan bazy po migracji:**
+- 6 nowych tabel: `rynki_priorytetowe` (słownik 8 rynków z PL/EN/DE), `oferty_rynki`, `prace_rynki`, `oferty_dokumenty`, `prace_related`, `oferty_analityka`
+- 25 nowych kolumn: 14 w `oferty` (typ_oferty, token, status, klient_id, daty, język, hero), 5 w `oferty_prace` (cena EUR, cena_widoczna, opisy EN/DE, status), 6 w `prace` (int_priorytet, int_status, Visual Wall PL/EN/DE, notatki)
+- 18 indeksów performance (w tym partial unique na `oferty.token` gdy NOT NULL)
+- 8 CHECK constraints walidujących enum-like wartości
+
+**Trzy typy ofert:**
+- `kolekcja` — oferta główna nowej strony, stały URL `/kolekcja`
+- `archiwum` — dawny viewing-room, stały URL `/viewing-room` z filtrami
+- `indywidualna` — z tokenem dla konkretnego klienta, URL `/oferta/[token]`
+
+**Rozstrzygnięte decyzje strategiczne (D1-D8):**
+- D1: Token tylko dla `indywidualna` (pozostałe oferty mają stałe URL)
+- D2: Cena domyślnie ukryta — "Cena na zapytanie", widoczna tylko gdy galerysta zdecyduje
+- D3: FK `klient_id → klienci` od razu (30 pól tabeli `klienci` są bogate)
+- D4: Drag & drop kolejność prac w widgecie panelu CRM
+- D5: Visual Wall na później (po zakupie ekranu 85") — pola są w bazie
+- D6: PDF + inne załączniki przez `oferty_dokumenty` (M:N do oferty)
+- D7: AI generuje komentarze kuratorskie per praca, galerysta zatwierdza/edytuje
+- D8: Hasła i daty wygaśnięcia na później — pola nullable w bazie
+
+**Do dokończenia w pozostałych etapach Obszaru 4:**
+- Moduł CRM ofert w `esta-panel.html`: modal tworzenia/edycji + widget listy prac z drag & drop + 4 generatory AI (Instagram/Facebook, LinkedIn, Email, Newsletter) + generator PDF + walidacja minimum jeden segment
+- Strona publiczna Next.js: komponenty wspólne + `/kolekcja` + `/viewing-room` + `/oferta/[token]` + `/praca/[id]`
+- International routing `/international/*` (kontekst kuratorski EN/DE)
+- Sold/Related Works + tracking analityki ofert
+- Tabela `klienci_profil` — dług do sprawdzenia w Obszarze 12 (duplikuje większość pól `klienci`)
+
 **Jak jest:** `oferty` (z tokenem, rabatami, prognozą zysku) — panel ją woła. `oferty_prace` (które prace w ofercie) — panel NIE używa. Generowanie ofert z tokenem (okno 3) jeszcze nie działa w pełni.
 
 **Jak ma być:** panel generuje ofertę → zaznacza prace (multiselect/koszyk) → zapisuje powiązania do `oferty_prace` (z ceną/opisem per oferta) → generuje token → tworzy link do `/oferta/[token]` na nowej stronie Next.js.
@@ -278,7 +309,7 @@ Zasada: od fundamentu do nadbudowy; baza+panel każdego obszaru razem; testować
 
 **ETAP II — sprzedaż i media (pod ArtBasel):**
 5. Obszar 3 (zdjęcia/media + auto-SEO) — 🟡
-6. Obszar 4 (oferty + token) — 🟡
+6. Obszar 4 (oferty + token) — 🟡 baza danych ukończona 2026-06-04, commit `b00bdc6` (panel CRM i strona Next.js do dokończenia)
 7. Obszar 5 (AI persystencja) — 🟢
 8. Obszar 6 (finanse auto-marża) — 🟡
 
