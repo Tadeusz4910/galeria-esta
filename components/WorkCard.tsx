@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import WorkImage from '@/components/WorkImage'
+import { artistSlug, workSlug } from '@/lib/slug'
 
 export interface PracaForCard {
   id: string
@@ -30,28 +31,6 @@ interface WorkCardProps {
 
 const C = '"Cormorant Garamond", Georgia, serif'
 const I = '"Instrument Sans", -apple-system, BlinkMacSystemFont, sans-serif'
-
-// Konwencja ESTA: w bazie "Kozłowski Jarosław", w URL "jaroslaw-kozlowski".
-// Pierwsze słowo to nazwisko, reszta to imię — odwracamy + normalizujemy.
-function artistSlug(nazwiskoIimie: string | null | undefined): string {
-  if (!nazwiskoIimie) return ''
-  const parts = nazwiskoIimie.trim().split(/\s+/)
-  const reordered =
-    parts.length >= 2 ? parts.slice(1).join(' ') + ' ' + parts[0] : nazwiskoIimie
-  return reordered
-    .toLowerCase()
-    .replace(/ą/g, 'a')
-    .replace(/ć/g, 'c')
-    .replace(/ę/g, 'e')
-    .replace(/ł/g, 'l')
-    .replace(/ń/g, 'n')
-    .replace(/ó/g, 'o')
-    .replace(/ś/g, 's')
-    .replace(/ż/g, 'z')
-    .replace(/ź/g, 'z')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
 
 // 3-poziomowy fallback dla zdjęć:
 // L1: Supabase Storage (przyszłość — pole zdjecie_url_supabase)
@@ -99,7 +78,11 @@ export default function WorkCard({
   const imageUrl = getImageUrl(praca)
   const artistHref = getArtistHref(praca)
   const altText = buildAlt(praca)
-  const workHref = `/praca/${praca.id}`
+  const workHref = `/praca/${workSlug({
+    artysta_nazwa: praca.artysta_nazwa,
+    tytul: praca.tytul,
+    rok: praca.rok,
+  })}`
   const showCena =
     showPrice && typeof praca.cena_oferowana === 'number' && praca.cena_oferowana > 0
   const segmentToShow =

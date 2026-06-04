@@ -41,7 +41,7 @@ function mapRowToCard(row: DbRow): PracaForCard {
     id: row.id,
     id_pracy: row.id_pracy,
     tytul: row.tytul,
-    rok: row.rok_opis || row.rok,
+    rok: row.rok,
     technika: row.technika,
     wymiary: row.wymiary_pracy,
     cena_oferowana: row.cena_oferowana,
