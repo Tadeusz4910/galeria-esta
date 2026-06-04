@@ -18,11 +18,31 @@
 
 W systemie ESTA wszystkie oferty mają **wspólne DNA wizualne i konceptualne** (Nordenhake redukcja + ciepło galerii ESTA). Różnią się trybem dostępu, zakresem, gęstością — nie tożsamością wizualną. Klient który widział kiedyś jedną ofertę ESTA rozpoznaje każdą następną jako ten sam świat, tę samą galerię.
 
+### Kluczowe rozróżnienie — oferta jako koncept vs oferta jako encja bazodanowa
+
+**"Oferta" w sensie szerokim** (koncept kuratorski) to każda z trzech form prezentacji prac: kolekcja, archiwum, indywidualna. W tym sensie są to "trzy typy ofert".
+
+**"Oferta" w sensie wąskim** (encja bazodanowa) to **wyłącznie oferta indywidualna z tokenem** — pojedynczy rekord w tabeli `oferty`, dedykowany dla konkretnego klienta. Tabela `oferty` NIE zawiera rekordów dla `/kolekcja` ani `/viewing-room`.
+
+**Praktyczne konsekwencje:**
+
+- `/kolekcja` to **publiczna strona Next.js** automatycznie agregująca prace z `prace.widocznosc='kolekcja'`. Galerysta NIE tworzy "oferty kolekcja" w panelu — przypisuje pracom widocznosc='kolekcja' w modal pracy.
+- `/viewing-room` to **publiczna strona Next.js** agregująca prace z `prace.widocznosc='archiwum'`. Analogicznie — bez tworzenia "oferty archiwum".
+- `/oferta/[token]` to **prywatna strona** fetchująca konkretną ofertę z tabeli `oferty` po tokenie + dołączone prace z `oferty_prace`.
+
+**Praca w ofercie indywidualnej NIEZALEŻNA od jej `widocznosc`:** galerysta tworząc ofertę dla klienta wybiera prace **dowolnie z bazy** — z kolekcji, archiwum, zasobu, nowo wprowadzone. Klient w jednym widoku dostaje uporządkowaną prezentację dedykowaną dla niego, niezależnie od tego gdzie te prace są publicznie widoczne.
+
+**Ceny i opisy per oferta są persistentne historycznie:** ta sama praca w 5 różnych ofertach może mieć 5 różnych cen i 5 różnych tekstów kuratorskich — każdy dla konkretnego klienta. To fundamentalny mechanizm sprzedaży galerii (klient X widzi cenę 18 000, klient Y widzi 22 000 dla tej samej pracy, każdy w swojej ofercie).
+
 ---
 
 ## 1. TRZY TYPY OFERT — fundament systemu
 
+> **PRZYPOMNIENIE:** "Trzy typy ofert" to **koncept kuratorski** (trzy formy prezentacji prac). Tabela `oferty` w bazie zawiera WYŁĄCZNIE Typ 3 (oferty indywidualne z tokenem). Typy 1 i 2 to publiczne strony Next.js agregujące prace wg `prace.widocznosc`.
+
 ### Typ 1: Oferta główna nowej strony (`/kolekcja`)
+
+**Mechanizm techniczny:** publiczna strona Next.js (Server Component) fetchująca wszystkie prace z `prace.widocznosc='kolekcja'`. NIE jest rekordem w tabeli `oferty`. Praca pojawia się automatycznie gdy galerysta przypisze jej widocznosc='kolekcja' w modal pracy.
 
 **Charakter:** najważniejsza warstwa publiczna. Pokazuje **kim galeria jest programowo** — rdzeń konceptualny, program poszerzony, współczesne kontynuacje. Manifest kuratorski.
 
@@ -32,7 +52,11 @@ W systemie ESTA wszystkie oferty mają **wspólne DNA wizualne i konceptualne** 
 
 **Layout:** grid 2-kolumnowy (większe prace, większa ranga), sekcje narracyjne (Rdzeń konceptualny / Geometria / Współczesne kontynuacje), długi tekst kuratorski wstępny.
 
+**Stan implementacji (czerwiec 2026):** ✅ ZROBIONE w Task B3 + naprawa kadrowania obrazów. 14 prac z `widocznosc='kolekcja'` widocznych na żywej stronie. Zdjęcia przez fallback do TheCamels CDN (`https://galeria-esta.pl/viewing-room/images/prace/{id_pracy}.jpg`).
+
 ### Typ 2: Oferta archiwum (`/viewing-room`)
+
+**Mechanizm techniczny:** publiczna strona Next.js fetchująca prace z `prace.widocznosc='archiwum'`. NIE jest rekordem w tabeli `oferty`. Galerysta przypisuje widocznosc='archiwum' w modal pracy.
 
 **Charakter:** szeroki publiczny zasób galerii z 28 lat działalności. Praktyczne narzędzie kolekcjonerskie i handlowe.
 
@@ -42,15 +66,23 @@ W systemie ESTA wszystkie oferty mają **wspólne DNA wizualne i konceptualne** 
 
 **Layout:** grid 3-kolumnowy (więcej prac, mniejsza ranga indywidualnej), wyszukiwarka + 4 filtry (artysta / segment / cena + tekst pełny) + chipy segmentów + tag links.
 
+**Stan implementacji (czerwiec 2026):** ⏳ DO ZROBIENIA (Task B5).
+
 ### Typ 3: Oferta indywidualna z tokenem (`/oferta/[token]`)
+
+**Mechanizm techniczny:** rekord w tabeli `oferty` z unikalnym tokenem (16-znakowy hash). Każda oferta dla konkretnego klienta (`klient_id` FK). Lista prac przez M:N `oferty_prace` z dodatkowymi polami per oferta (cena_w_ofercie, opis_do_oferty, kolejnosc).
+
+**Praca w ofercie indywidualnej NIEZALEŻNA od jej `widocznosc`:** galerysta może wybrać do oferty pracę z kolekcji, archiwum, zasobu lub nowo wprowadzoną. Ta sama praca może być w wielu ofertach jednocześnie — każda ze swoją ceną dla konkretnego klienta.
 
 **Charakter:** prywatna prezentacja dla konkretnego klienta. **Najbardziej prestiżowy widok systemu** — kameralne zaproszenie do oglądania prac.
 
 **Funkcja:** konkretny klient, konkretne prace, dedykowana propozycja. Po spotkaniu, po targach, dla kolekcjonera, dla instytucji, dla architekta.
 
-**Charakter ESTA:** najbliżej Nordenhake — private viewing room, nie cennik, nie katalog. Krótki tekst osobisty, "prepared for", dyskretność.
+**Charakter ESTA:** najbliżej Nordenhake — private viewing room, nie cennik, nie katalog. Krótki tekst osobisty (bez "prepared for [nazwa klienta]" — dyskretność, klient nie jest etykietowany).
 
 **Layout:** grid 2-kolumnowy (najbliższy oferty głównej, ale z innym tonem osobistym), nawigacja "Prace / Dokumenty / Kontakt", numer oferty w bazie ale niedominujący wizualnie.
+
+**Stan implementacji (czerwiec 2026):** ⏳ CZĘŚCIOWO (Task B2 dał szkielet bez listy prac). Wymaga: Task A1.5 (uproszczenie modalu m-of w panelu — usunięcie wyboru typ_oferty), Task A2 (widget listy prac w modalu z drag&drop), Task B7 (lista prac na froncie z `<WorkCard kontekst="oferta">`).
 
 ---
 
@@ -1055,14 +1087,35 @@ Pole `token` w tabeli `oferty` jest **wymagane tylko dla `typ_oferty = 'indywidu
 
 To upraszcza architekturę i URL strony publicznej.
 
-### D2 — ROZSTRZYGNIĘTE: Domyślnie "Cena na zapytanie", widoczna tylko gdy galerysta zdecyduje
-Pole `cena_widoczna` w tabeli `oferty_prace` ma domyślną wartość `false`. Galerysta musi świadomie zaznaczyć checkbox "pokaż cenę" dla konkretnej pracy w konkretnej ofercie.
+### D2 — ROZSTRZYGNIĘTE (skorygowane): Cena widoczna per typ oferty
 
-To dotyczy wszystkich trzech typów ofert — kolekcji, archiwum i indywidualnej.
+**Korekta z dyskusji czerwiec 2026:** Tadeusz wyjaśnił że cena nie jest stała dla pracy — **jest negocjowana per klient w ofercie indywidualnej**. Klient korporacyjny pierwszy raz dostaje cenę katalogową; stały kolekcjoner z 5 zakupami dostaje rabat 10%; instytucja muzealna ma swoją cenę specjalną.
 
-Konsekwencja: na karcie pracy domyślnie pokazuje się "Cena na zapytanie" (lub "Price on request" w wersji EN, "Preis auf Anfrage" w DE) z linkiem do Enquire. Cena pojawia się tylko gdy galerysta świadomie ją odsłonił.
+**Domyślne zachowanie ceny per typ oferty:**
 
-**Strategicznie dobra decyzja** — sztuka galeryjna nie jest produktem z metki. Cena jako element relacji, nie pierwszy komunikat.
+- **`/kolekcja` (publiczna programowa):** cena domyślnie **UKRYTA**. To manifest kuratorski, nie sklep. Pokazujemy "Cena na zapytanie" lub całkowicie pomijamy. Galerysta może świadomie odsłonić cenę dla konkretnej pracy.
+
+- **`/viewing-room` (publiczne archiwum):** cena domyślnie **WIDOCZNA** (jak w starym `collection.php`). Klienci przeglądający archiwum mają dostęp do orientacyjnych cen.
+
+- **`/oferta/[token]` (indywidualna):** cena **WIDOCZNA** (kluczowy mechanizm sprzedaży). Galerysta wpisuje konkretną cenę dla konkretnego klienta w `oferty_prace.cena_w_ofercie`. Klient widzi swoją negocjowaną cenę.
+
+**Cena per oferta jest persistentna historycznie:** ta sama praca w 5 różnych ofertach może mieć 5 różnych cen. Klient X widzi 18 000, klient Y widzi 22 000 — każdy w swojej ofercie, każda cena zafiksowana w momencie utworzenia oferty. Galerysta wracający za miesiąc do oferty X widzi tę samą cenę 18 000, nawet jeśli `prace.cena_oferowana` (cena katalogowa) w międzyczasie się zmieniła.
+
+**Stan implementacji:**
+- ✅ `/kolekcja` (Task B3): cena ukryta (showPrice={false} w `<WorkCard>`)
+- ✅ `/praca/[slug]` (Task B4): cena widoczna (D23 wybrane Tadeusza)
+- ⏳ `/viewing-room` (Task B5): cena widoczna (do zrobienia)
+- ⏳ `/oferta/[token]` z listą prac (Task B7): cena z `oferty_prace.cena_w_ofercie` (do zrobienia)
+
+**Pole `cena_widoczna BOOLEAN` w `oferty_prace`** zostaje jako mechanizm nadpisania per praca (np. w ofercie indywidualnej galerysta może ukryć cenę dla jednej konkretnej pracy nawet jeśli reszta ofert ma cenę widoczną).
+
+**Logika domyślnego ustawiania `cena_widoczna` w panelu CRM przy dodawaniu pracy do oferty:**
+- typ_oferty = 'kolekcja' → `cena_widoczna = false`
+- typ_oferty = 'archiwum' → `cena_widoczna = true`
+- typ_oferty = 'indywidualna' → `cena_widoczna = true`
+- Galerysta świadomie nadpisuje dla konkretnej pracy
+
+**Strategicznie dobra decyzja** — sztuka galeryjna nie jest produktem z metki. Cena jako element relacji w kolekcji programowej, narzędzie operacyjne w archiwum, negocjowana propozycja w ofercie indywidualnej.
 
 ### D3 — ROZSTRZYGNIĘTE: Tabela `klienci` jest bogata, używamy FK od razu
 
@@ -1145,6 +1198,216 @@ W drugiej iteracji (po pierwszych realnych użyciach) — dodamy:
 - Na stronie publicznej `/oferta/[token]` — formularz hasła jeśli `haslo_hash` istnieje, sprawdzenie `data_waznosci` przed wyświetleniem
 
 To naturalne rozszerzenie po sprawdzeniu czy faktycznie potrzebne w realnej pracy.
+
+---
+
+## 13B. DECYZJE IMPLEMENTACYJNE (D9-D24) — z sesji czerwiec 2026
+
+Decyzje techniczne i projektowe podjęte podczas budowania frontend strony publicznej (Task B1-B4) i panelu CRM (Task A1).
+
+### D9 — Stylowanie Next.js: zostać przy inline styles
+
+Po inwentaryzacji 16 istniejących routów (artyści, wystawy, idee, kompendium, blog) okazało się że wszystkie używają **inline styles** w stylu `const C = '"Cormorant Garamond"...'`. Tailwind v4 jest zainstalowany ale nieużywany.
+
+**Decyzja:** zostać przy obecnym wzorcu dla Obszaru 4. Nie naruszamy 16 działających routów. Komponenty Obszaru 4 piszemy w tym samym wzorcu. Migracja na Tailwind = osobny refactor techniczny (Obszar 14), nie blokuje pracy nad ofertami.
+
+### D10 — Drag & drop w panelu: SortableJS via CDN
+
+Dla kolejności prac w ofercie indywidualnej (`oferty_prace.kolejnosc`):
+- Krótki kod (~10 linii inicjalizacji vs ~50 native handlers)
+- Sprawdzona biblioteka (tysiące galerii internetowych używa)
+- Touch support out-of-the-box dla mobile
+- Zero zależności w panelu poza CDN
+
+### D11 — Cena per oferta: sugestia z `cena_oferowana`, fiksacja po zapisie
+
+W modalu m-of przy dodawaniu pracy do oferty:
+- Pole `cena_w_ofercie` startuje z wartością `prace.cena_oferowana` jako **sugestia**
+- Galerysta świadomie modyfikuje lub akceptuje dla konkretnego klienta
+- Po zapisaniu — cena zafiksowana w `oferty_prace` (nawet jeśli `prace.cena_oferowana` się potem zmieni)
+
+Plus widget **"Historia tej pracy w ofertach"** — pokazuje galerystowi w jakich cenach była już oferowana, dla jakich klientów, z jakim rezultatem. Galerysta sam decyduje na podstawie kontekstu.
+
+### D12 — Opisy ofert PL/EN/DE w zakładkach
+
+Wzorzec z Sesji B1 (modale artystów, prac, wystaw, targów, blogów) — wszystkie pola tekstowe oferty mają zakładki PL/EN/DE z funkcją `lng()`. Dotyczy: `tytul`, `wstep`, `tekst_kuratorski`, `tekst_dla_klienta`, `seo_title`, `seo_description`.
+
+### D13 — Konsolidacja Supabase client w `lib/supabase.ts`
+
+Po inwentaryzacji okazało się że `./supabase.ts` istnieje ale nikt nie importuje. Każda strona robi własny `createClient`. To **must-fix przed Obszarem 4** żeby uniknąć debugowania 8 niezależnych instancji.
+
+**Zrobione w Task B1** (commit 75a5415):
+- Stworzony `lib/supabase.ts` jako singleton (6 linii)
+- Stary `./supabase.ts` usunięty
+- `app/targi/page.tsx` zmigrowany testowo (HTTP 200 PASS)
+- Świadomy dług: pozostałe 7 page.tsx wciąż inline (artysci, artysta/[slug], idee, idee/[slug], kompendium, kompendium/[slug], targ/[url], wystawa/[url])
+
+### D14 — Karta jednolita z propsami warunkowymi
+
+Jeden komponent `<WorkCard>` używany na 3 stronach (kolekcja, viewing-room, oferta). Propsy:
+
+```typescript
+<WorkCard 
+  praca={praca}
+  kontekst="kolekcja"      // "kolekcja" | "viewing-room" | "oferta"
+  showPrice={false}         // ukrywa lub pokazuje cenę
+  showSegment={true}        // dyskretny podpis segmentu
+  maxTags={3}               // 3 dla kolekcji, 4 dla viewing-room
+  tagLinkBase="/kolekcja"   // patrz D16
+/>
+```
+
+Jeden komponent, różne ekspozycje. Reuse w `/oferta/[token]` (Task B7).
+
+### D15 — Linki w karcie
+
+- **Zdjęcie + tytuł** → `/praca/[slug]` (wspólny szczegół pracy)
+- **Nazwa artysty** → `/artysta/[slug]` (istniejący profil artysty)
+- **Tag pojęcia** → filtr w kontekście, patrz D16
+
+### D16 — Zamknięcie kontekstów + wyjątek oferta promuje kolekcję
+
+**Zasada zamknięcia kontekstowego:** kolekcja i archiwum są samowystarczalne. Tag pojęcia klikany w karcie na `/kolekcja` filtruje **tylko prace z kolekcji**. Klikany na `/viewing-room` → tylko archiwum. Klient nie jest przerzucany między obszarami.
+
+**Wyjątek strategiczny:** w ofertach indywidualnych tagi **ZAWSZE prowadzą do `/kolekcja`** (promocja publicznej strony jako "domu" galerii). Klient oferty indywidualnej odkrywa publiczny program galerii przez naturalne kliknięcia eksploracyjne.
+
+**Mapa kierowania tagów:**
+
+| Skąd klika | Dokąd prowadzi |
+|---|---|
+| `/kolekcja` | `/kolekcja?tag=...` |
+| `/viewing-room` | `/viewing-room?tag=...` |
+| `/oferta/[token]` | `/kolekcja?tag=...` (PROMOCJA) |
+| `/praca/[slug]` | `/kolekcja?tag=...` (publiczny szczegół jest częścią galerii publicznej) |
+
+### D17 — Placeholder dla braku zdjęcia: subtelne logo ESTA
+
+Zamiast tekstu "Brak zdjęcia" (jak `collection.php`) — subtelny placeholder z napisem **ESTA** w Cormorant Garamond 32px, kolor #cfc6ba na tle #fbfaf8 (jaśniejszy niż tło strony). Galeria klasy europejskiej nie pisze "brak zdjęcia".
+
+### D18 — URL szczegółu pracy: slug generowany w locie
+
+Format: `/praca/[slug]` gdzie slug = `{artysta-slug}-{tytul-slug}-{rok}`.
+Przykład: `/praca/josef-bauer-a-1971`
+
+**Implementacja "dobrze ale bez specjalnego skomplikowania":**
+- Slug generowany przez `workSlug()` w `lib/slug.ts`
+- NIE przechowywany w bazie (zero migracji SQL)
+- Wyszukiwanie: fetch wszystkich publicznych prac → filter w pamięci po wygenerowanym slug
+
+**Świadomy dług:** workSlug może dawać duplikaty (rzadkie — dwie prace tego samego artysty o identycznym tytule i roku). Przy 500+ prac dodać kolumnę `slug` do bazy (Obszar 12).
+
+### D19 — Layout szczegółu pracy: 70/30 desktop, stack mobile
+
+- **Desktop (>900px):** lewa kolumna 70% z galerią (główne zdjęcie max 78vh + miniatury), prawa kolumna 30% sticky z danymi pracy
+- **Mobile (<900px):** stack vertikalnie, sticky wyłączone
+
+Wzorzec Nordenhake/PrivateViews — sprawdzony, profesjonalny.
+
+### D20 — Galeria miniatur: client-side z onError
+
+Dla każdej pracy w `<WorkGallery>` ('use client') próbujemy załadować 20 potencjalnych URL:
+- `https://galeria-esta.pl/viewing-room/images/prace/{id_pracy}.jpg`
+- `https://galeria-esta.pl/viewing-room/images/prace/{id_pracy}_2.jpg`
+- ... do `_20.jpg`
+
+Każda miniatura ma `onError` → pomijamy z UI. Jeśli wszystkie 20 dają 404 → placeholder ESTA.
+
+### D21 — Sekcje sidebar pracy: puste ukrywane
+
+W `<WorkDetailSidebar>` (Server Component):
+- PROGRAM (idea + pojęcia) — pokazuje się jeśli `idea_glowna_id` lub `pojecia.length > 0`
+- KLASYFIKACJA (segmenty + style + dziedziny) — jeśli `segmenty.length > 0` lub style/dziedziny
+- PROWENIENCJA — jeśli pole niepuste
+- WYSTAWY/BIBLIOGRAFIA — jeśli pola niepuste
+
+Sekcje puste są ukrywane (zgodnie z `praca.php`). Mobile: wszystkie pokazane domyślnie (nie ma toggle — świadomy dług dla mikro-tasku).
+
+### D22 — Related Works: i "Inne prace artysty" i "Podobne prace"
+
+W Task B4 zaimplementowane **OD RAZU** oba (zamiast odkładać scoreSimilarity do Task B6).
+
+Algorytm `scoreSimilarity` (z `praca.php` rozszerzony o idee/pojęcia):
+- +30 wspólny segment (najwyższa waga, fundament klasyfikacji)
+- +25 wspólna idea_glowna_id (kuratorskie podobieństwo)
+- +15 wspólny styl
+- +10 wspólna dziedzina
+- +5×n wspólne pojęcia (max +15)
+- +10 cena ±25%
+
+Lokalizacja: `lib/scoreSimilarity.ts`.
+
+### D23 — Cena na `/praca/[slug]`: WIDOCZNA
+
+Publiczny szczegół pracy (z `widocznosc='kolekcja'` lub `widocznosc='archiwum'`) pokazuje cenę z `prace.cena_oferowana` jeśli jest. Spójność z `collection.php` (stary wzorzec) — orientacyjna cena pomocna dla klienta przeglądającego.
+
+Decyzja niezgodna z D2 dla kolekcji (gdzie cena ukryta) — bo `/praca/[slug]` to **szczegół pracy**, nie kontekst kolekcji. Klient kliknął "Zobacz pracę →" świadomie szukając pełnych informacji.
+
+### D24 — Breadcrumb z `widocznosc` pracy
+
+Na `/praca/[slug]` breadcrumb pokazuje kontekst z którego pracy pochodzi:
+- `widocznosc='kolekcja'` → "Galeria ESTA / KOLEKCJA / Bauer Josef — A, 1971"
+- `widocznosc='archiwum'` → "Galeria ESTA / VIEWING ROOM / [tytuł]"
+
+Prosty mechanizm, działa zawsze, bez query params ani Referer header.
+
+---
+
+## 13C. INFRASTRUKTURA ZAIMPLEMENTOWANA — strona publiczna (czerwiec 2026)
+
+Sesja czerwcowa zbudowała pełen fundament strony publicznej Galerii ESTA. Stan po Task B1-B4:
+
+### Pliki w repozytorium `~/Documents/galeria-esta/`
+
+**Helpers (lib/):**
+- `lib/supabase.ts` — singleton Supabase client (Task B1)
+- `lib/slug.ts` — `artistSlug()` + `workSlug()` z normalizacją polskich znaków (Task B4)
+- `lib/scoreSimilarity.ts` — algorytm rekomendacji prac (Task B4)
+
+**Komponenty (components/):**
+- `components/WorkCard.tsx` — uniwersalna karta pracy (Server Component) z propsami warunkowymi (Task B3)
+- `components/WorkImage.tsx` — obraz w polu 4:3 z onError fallback (Client Component) (Task B3 + fix kadrowania)
+- `components/WorkGallery.tsx` — galeria główne zdjęcie + miniatury 1-20 (Client Component) (Task B4)
+- `components/WorkDetailSidebar.tsx` — prawa kolumna 30% z danymi pracy (Server Component) (Task B4)
+- `components/RelatedWorks.tsx` — grid mini-WorkCard dla sekcji related (Server Component) (Task B4)
+
+**Routy (app/):**
+- `app/kolekcja/page.tsx` — żywa strona z fetch prac `widocznosc='kolekcja'`, grid 2-kolumnowy, filtr ?tag= (Task B3)
+- `app/praca/[slug]/page.tsx` — szczegół pracy 70/30, galeria + sidebar + related works (Task B4)
+- `app/oferta/[token]/page.tsx` — szkielet bez listy prac, fetch oferty po tokenie (Task B2)
+
+### Stan bazy danych
+
+**Tabela `prace`:**
+- 108 prac w bazie
+- 14 prac z `widocznosc='kolekcja'` (Bauer, Berdyszak, Roy, Chwałczyk, Kossakowski, Sobczyk, Zilocchi + 7 innych)
+- 15/108 prac z segmentami (niejednolite pokrycie)
+- 0 prac z pojęciami (`pojecia_prace` puste — uzupełnimy przez panel)
+- 25/42 artystów z `url_artysty` (50% prac kolekcji ma NULL — fallback przez `artistSlug` helper)
+
+**Zdjęcia:**
+- W bazie: 0 (brak `prace.zdjecie_hero`, brak tabeli `prace_zdjecia`)
+- Na TheCamels CDN: setki zdjęć z 28 lat działalności pod schematem `https://galeria-esta.pl/viewing-room/images/prace/{id_pracy}.jpg`
+- Strategia: 3-poziomowy fallback (Supabase Storage przyszłości → TheCamels CDN → placeholder ESTA)
+- Migracja do Supabase Storage: osobny Obszar 3 na przyszłość
+
+### Stan deployu
+
+**Production URL:** `https://galeria-esta.vercel.app`
+- `/kolekcja` ✅ ZROBIONE (14 prac, każda karta linkuje do `/praca/[slug]`)
+- `/praca/[slug]` ✅ ZROBIONE (np. `/praca/josef-bauer-a-1971` — pełen szczegół z galerią + sidebar + 8 podobnych prac)
+- `/viewing-room` ⏳ DO ZROBIENIA (Task B5)
+- `/oferta/[token]` ⏳ CZĘŚCIOWO (szkielet bez listy prac, Task B7 dokończenie)
+
+### Świadome długi techniczne do uporządkowania
+
+1. **workSlug duplikaty** — przy 500+ prac dodać kolumnę `slug` do bazy (Obszar 12)
+2. **generateMetadata fetch all** — przy 1000+ prac dodać cache lub dedykowany SELECT po slug
+3. **Sekcje sidebar mobile** — toggle z + przyciskami (mikro-task)
+4. **Inline styles w 8 page.tsx** — osobny refactor (Task B1 odsłonił dług)
+5. **Migracja zdjęć** do Supabase Storage — Obszar 3
+6. **Pojęcia/segmenty w bazie** — uzupełnić przez panel CRM dla 14 prac kolekcji
+7. **Modal m-of typ_oferty** — Task A1.5 niedokończone (panel pyta o typ_oferty, semantyczny błąd, do uproszczenia)
+8. **Lista prac w ofercie** — Task A2 (drag&drop, ceny per oferta, opisy PL/EN/DE) — kluczowe dla `/oferta/[token]`
 
 ---
 

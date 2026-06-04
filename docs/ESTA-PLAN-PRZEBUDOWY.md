@@ -165,12 +165,23 @@ Ortogonalnie: `status_handlowy` (dostepna / zarezerwowana / sprzedana) — bo sp
 - D7: AI generuje komentarze kuratorskie per praca, galerysta zatwierdza/edytuje
 - D8: Hasła i daty wygaśnięcia na później — pola nullable w bazie
 
+**Status (strona publiczna - frontend) — czerwiec 2026:**
+- ✅ /kolekcja: Task B3 commit (komponent `<WorkCard>`, fetch `widocznosc='kolekcja'`, 14 prac na żywej stronie)
+- ✅ /praca/[slug]: Task B4 commit `c42c4b5` (szczegół z galerią 70/30, scoreSimilarity, "Inne prace artysty" + "Podobne prace")
+- ✅ Infrastruktura: `lib/supabase.ts` (singleton), `lib/slug.ts` (artistSlug+workSlug), `lib/scoreSimilarity.ts`
+- ✅ Komponenty: `<WorkCard>`, `<WorkImage>`, `<WorkGallery>`, `<WorkDetailSidebar>`, `<RelatedWorks>`
+
+**Decyzje implementacyjne D9-D24 zaprotokołowane w `docs/OBSZAR-4-OFERTY.md` sekcja 13B.**
+
 **Do dokończenia w pozostałych etapach Obszaru 4:**
-- Moduł CRM ofert w `esta-panel.html`: modal tworzenia/edycji + widget listy prac z drag & drop + 4 generatory AI (Instagram/Facebook, LinkedIn, Email, Newsletter) + generator PDF + walidacja minimum jeden segment
-- Strona publiczna Next.js: komponenty wspólne + `/kolekcja` + `/viewing-room` + `/oferta/[token]` + `/praca/[id]`
-- International routing `/international/*` (kontekst kuratorski EN/DE)
-- Sold/Related Works + tracking analityki ofert
-- Tabela `klienci_profil` — dług do sprawdzenia w Obszarze 12 (duplikuje większość pól `klienci`)
+- Task A1.5 — uproszczenie modalu m-of w panelu (usunięcie wyboru `typ_oferty`)
+- Task A2 — widget listy prac w ofercie (drag&drop SortableJS, ceny per oferta, opisy PL/EN/DE, historia oferowania)
+- Task B5 — przebudowa `/viewing-room` (grid 3-kolumnowy, filtry z `collection.php`, fetch `widocznosc='archiwum'`)
+- Task B7 — dokończenie `/oferta/[token]` z listą prac (po A2)
+- Tracking analityki ofert (tabela `oferty_analityka`)
+- International routing `/international/*`
+- Migracja zdjęć do Supabase Storage (osobny Obszar 3)
+- Korekta D2 w bazie: pole `cena_widoczna` ma być TRUE domyślnie dla `typ_oferty='indywidualna'` i `'archiwum'`
 
 **Jak jest:** `oferty` (z tokenem, rabatami, prognozą zysku) — panel ją woła. `oferty_prace` (które prace w ofercie) — panel NIE używa. Generowanie ofert z tokenem (okno 3) jeszcze nie działa w pełni.
 
