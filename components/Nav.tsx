@@ -9,14 +9,14 @@
 import { useState } from 'react'
 
 const menuItems = [
-  { label: 'Artysci', href: '/artysci', key: 'artysci' },
+  { label: 'Artyści', href: '/artysci', key: 'artysci' },
   { label: 'Wystawy', href: '/wystawy', key: 'wystawy' },
   { label: 'Targi', href: '/targi', key: 'targi' },
   { label: 'Kolekcja', href: '/kolekcja', key: 'kolekcja' },
-  { label: 'Idee', href: '/idee', key: 'idee' },
+  { label: 'Zasoby', href: '/zasoby', key: 'zasoby' },
+  { label: 'Viewing Room', href: '/viewing-room', key: 'viewing-room' },
   { label: 'Kompendium', href: '/kompendium', key: 'kompendium' },
   { label: 'Blog', href: '/blog', key: 'blog' },
-  { label: 'Viewing Room', href: '/viewing-room', key: 'viewing-room' },
   { label: 'O nas', href: '/o-nas', key: 'o-nas' },
   { label: 'Kontakt', href: '/kontakt', key: 'kontakt' },
 ]

@@ -29,12 +29,36 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
   const a = artysci?.[0]
   if (!a) notFound()
 
-  // Idee artysty
-  const { data: ideeArtysty } = await supabase
-    .from('idee_artysci')
-    .select('rola, kolejnosc, idee(nazwa, slug, opis_krotki)')
+  // Linia programowa: idea glowna (single, via FK na artysci.idea_glowna_id)
+  const { data: ideeGlowneArr } = a.idea_glowna_id
+    ? await supabase
+        .from('idee')
+        .select('id, slug, nazwa')
+        .eq('id', a.idea_glowna_id)
+        .limit(1)
+    : { data: [] as any[] }
+  const ideaGlowna = ideeGlowneArr?.[0] ?? null
+
+  // Linia programowa: idee uzupelniajace (M:N artysci_idee, filter rola)
+  const { data: ideeUzupelniajaceArr } = await supabase
+    .from('artysci_idee')
+    .select('idee(id, slug, nazwa)')
     .eq('artysta_id', a.id)
-    .order('kolejnosc')
+    .eq('rola', 'uzupelniajaca')
+    .limit(4)
+  const ideeUzupelniajace = (ideeUzupelniajaceArr || [])
+    .map((ai: any) => ai.idee)
+    .filter(Boolean)
+
+  // Linia programowa: pojecia (M:N pojecia_artysci, max 6)
+  const { data: pojeciaArtystyArr } = await supabase
+    .from('pojecia_artysci')
+    .select('pojecia(id, slug, nazwa)')
+    .eq('artysta_id', a.id)
+    .limit(6)
+  const pojeciaArtysty = (pojeciaArtystyArr || [])
+    .map((pa: any) => pa.pojecia)
+    .filter(Boolean)
 
   // Wystawy artysty
   const { data: wystawyArtysty } = await supabase
@@ -80,7 +104,6 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
 
   const imie = a.nazwisko_i_imie?.trim() || ''
   const imieNazwisko = formatImieNazwisko(a.nazwisko_i_imie || '')
-  const ideeWszystkie = ideeArtysty || []
   const dlaczegoZdanie = (a.dlaczego_wazny || '').trim().split(/(?<=[.!?])\s/)[0] || ''
 
   // HERO: zdjecie_hero -> praca z media (po artysta_id) -> placeholder. Nigdy portret (zdjecie_artysty).
@@ -117,11 +140,17 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
         .art-hero-info{display:flex;flex-direction:column;padding:8px 32px 64px;}
         .art-hero-back{font-family:"Instrument Sans",sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#999;margin-bottom:40px;}
         .art-hero-name{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(30px,6vw,52px);font-weight:300;line-height:1.05;letter-spacing:-.01em;margin-bottom:28px;}
-        .art-hero-idee{display:flex;flex-wrap:wrap;align-items:center;row-gap:6px;font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.22em;text-transform:lowercase;color:#999;margin-bottom:32px;}
-        .art-hero-idee-item{display:inline-flex;align-items:center;}
-        .art-hero-idee a{color:#999;transition:color .2s;}
-        .art-hero-idee a:hover{color:#111;}
-        .art-hero-idee .sep{color:#ccc;margin:0 10px;}
+        .art-hero-program{display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
+        .art-hero-program-idea{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:18px;color:#444;text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s;display:inline-block;align-self:flex-start;}
+        .art-hero-program-idea:hover{color:#11110f;border-bottom-color:#11110f;}
+        .art-hero-program-uzup{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:13px;color:#777;line-height:1.6;}
+        .art-hero-program-uzup a{color:#777;text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s;}
+        .art-hero-program-uzup a:hover{color:#11110f;border-bottom-color:#11110f;}
+        .art-hero-program-uzup .sep{color:#ccc;margin:0 6px;}
+        .art-hero-program-pojecia{font-family:"Instrument Sans",sans-serif;font-size:13px;color:#777;line-height:1.6;}
+        .art-hero-program-pojecia a{color:#777;text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s;}
+        .art-hero-program-pojecia a:hover{color:#11110f;border-bottom-color:#11110f;}
+        .art-hero-program-pojecia .sep{color:#ccc;margin:0 6px;}
         .art-hero-why{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:clamp(15px,1.6vw,19px);color:#777;line-height:1.5;max-width:440px;margin-bottom:40px;}
         @media (min-width:900px){
           .art-hero{flex-direction:row;min-height:80vh;}
@@ -152,15 +181,48 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
         <div className="art-hero-info">
           <a href="/artysci" className="art-hero-back">&larr; Artysci</a>
           <h1 className="art-hero-name">{imieNazwisko}</h1>
-          {ideeWszystkie.length > 0 && (
-            <p className="art-hero-idee">
-              {ideeWszystkie.map((ia: any, i: number) => (
-                <span key={i} className="art-hero-idee-item">
-                  {i > 0 && <span className="sep">·</span>}
-                  <a href={`/idee/${ia.idee?.slug}`}>{(ia.idee?.nazwa || '').toLowerCase()}</a>
-                </span>
-              ))}
-            </p>
+          {(ideaGlowna || ideeUzupelniajace.length > 0 || pojeciaArtysty.length > 0) && (
+            <div className="art-hero-program">
+              {ideaGlowna && (
+                <a
+                  href={`/idee/${ideaGlowna.slug}`}
+                  className="art-hero-program-idea"
+                >
+                  {ideaGlowna.nazwa}
+                </a>
+              )}
+              {ideeUzupelniajace.length > 0 && (
+                <div className="art-hero-program-uzup">
+                  {ideeUzupelniajace.map((ia: any, idx: number) => (
+                    <span key={ia.id}>
+                      <a href={`/idee/${ia.slug}`}>
+                        {ia.nazwa}
+                      </a>
+                      {idx < ideeUzupelniajace.length - 1 && (
+                        <span className="sep">·</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {pojeciaArtysty.length > 0 && (
+                <div className="art-hero-program-pojecia">
+                  {pojeciaArtysty.map((p: any, idx: number) => {
+                    const nazwa = p.nazwa
+                    return (
+                      <span key={p.id}>
+                        <a href={`/kolekcja?tag=${encodeURIComponent(nazwa.toLowerCase())}`}>
+                          {nazwa}
+                        </a>
+                        {idx < pojeciaArtysty.length - 1 && (
+                          <span className="sep">·</span>
+                        )}
+                      </span>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           )}
           {dlaczegoZdanie && (
             <p className="art-hero-why">{dlaczegoZdanie}</p>

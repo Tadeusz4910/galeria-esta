@@ -18,7 +18,7 @@ export interface PracaForCard {
   pojecia?: { id: string; nazwa: string }[]
 }
 
-export type WorkCardKontekst = 'kolekcja' | 'viewing-room' | 'oferta'
+export type WorkCardKontekst = 'kolekcja' | 'zasoby' | 'viewing-room' | 'oferta'
 
 interface WorkCardProps {
   praca: PracaForCard
@@ -72,7 +72,7 @@ export default function WorkCard({
   praca,
   showPrice = false,
   showSegment = true,
-  maxTags = 3,
+  maxTags = 4,
   tagLinkBase = '/kolekcja',
 }: WorkCardProps) {
   const imageUrl = getImageUrl(praca)
@@ -178,33 +178,30 @@ export default function WorkCard({
           </div>
         )}
 
-        {/* Tagi pojęć — klikalne do /kolekcja?tag=… (max N) */}
+        {/* Pojęcia — subtelny inline z separatorem · (klikalne) */}
         {tagsToShow.length > 0 && (
           <div
+            className="wc-pojecia"
             style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '6px',
+              fontFamily: I,
+              fontSize: '11px',
+              letterSpacing: '0.04em',
+              lineHeight: 1.7,
               marginTop: '4px',
+              color: '#888',
             }}
           >
-            {tagsToShow.map((p) => (
-              <Link
-                key={p.id}
-                href={`${tagLinkBase}?tag=${encodeURIComponent(p.nazwa.toLowerCase())}`}
-                style={{
-                  fontFamily: I,
-                  fontSize: '11px',
-                  padding: '4px 10px',
-                  backgroundColor: '#f4f1ec',
-                  color: '#555',
-                  textDecoration: 'none',
-                  letterSpacing: '0.02em',
-                  transition: 'background-color 0.2s',
-                }}
-              >
-                {p.nazwa}
-              </Link>
+            {tagsToShow.map((p, i) => (
+              <span key={p.id}>
+                <Link
+                  href={`${tagLinkBase}?tag=${encodeURIComponent(p.nazwa.toLowerCase())}`}
+                >
+                  {p.nazwa}
+                </Link>
+                {i < tagsToShow.length - 1 && (
+                  <span className="sep" aria-hidden="true">·</span>
+                )}
+              </span>
             ))}
           </div>
         )}
@@ -253,6 +250,23 @@ export default function WorkCard({
           )}
         </div>
       </div>
+
+      <style>{`
+        .wc-pojecia a {
+          color: #888;
+          text-decoration: none;
+          border-bottom: 1px solid transparent;
+          transition: color .15s, border-color .15s;
+        }
+        .wc-pojecia a:hover {
+          color: #11110f;
+          border-bottom-color: #11110f;
+        }
+        .wc-pojecia .sep {
+          color: #ccc;
+          margin: 0 6px;
+        }
+      `}</style>
     </article>
   )
 }

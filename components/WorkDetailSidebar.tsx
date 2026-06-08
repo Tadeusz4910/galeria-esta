@@ -57,6 +57,21 @@ const sectionBody: React.CSSProperties = {
   whiteSpace: 'pre-line',
 }
 
+const tropyStyle: React.CSSProperties = {
+  fontFamily: I,
+  fontSize: '11px',
+  letterSpacing: '0.04em',
+  lineHeight: 1.6,
+  color: '#888',
+}
+
+const segmentStyle: React.CSSProperties = {
+  fontFamily: I,
+  fontSize: '13px',
+  lineHeight: 1.5,
+  color: '#555',
+}
+
 function formatPrice(value: number): string {
   return value.toLocaleString('pl-PL', { maximumFractionDigits: 0 }) + ' PLN'
 }
@@ -81,11 +96,11 @@ export default function WorkDetailSidebar({
   const body = `Dzień dobry,\n\nJestem zainteresowany/a pracą:\n${praca.artysta_nazwa ?? ''} — ${praca.tytul}${rokDisplay ? `, ${rokDisplay}` : ''}${praca.id_pracy ? ` (${praca.id_pracy})` : ''}.\n\nProszę o kontakt.\n`
   const mailto = `mailto:galeria@galeria-esta.pl?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 
-  const hasProgram = praca.idea || praca.pojecia.length > 0
-  const hasKlasyfikacja =
+  const hasTropy =
+    praca.pojecia.length > 0 ||
     praca.segmenty.length > 0 ||
-    praca.style.length > 0 ||
-    praca.dziedziny.length > 0
+    praca.dziedziny.length > 0 ||
+    praca.style.length > 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -202,64 +217,73 @@ export default function WorkDetailSidebar({
         Zapytaj o pracę →
       </a>
 
-      {/* PROGRAM (idea + pojęcia) */}
-      {hasProgram && (
-        <>
-          <div style={sectionHeader}>Program galerii</div>
-          <div style={sectionBody}>
-            {praca.idea && (
-              <div style={{ marginBottom: '6px' }}>
-                Idea:{' '}
-                <Link
-                  href={`/idee/${praca.idea.id}`}
-                  style={{ color: '#11110f', textDecoration: 'underline' }}
-                >
-                  {praca.idea.nazwa}
-                </Link>
-              </div>
-            )}
-            {praca.pojecia.length > 0 && (
-              <div>
-                Pojęcia:{' '}
-                {praca.pojecia.map((p, i) => (
-                  <span key={p.id}>
-                    <Link
-                      href={`/kolekcja?tag=${encodeURIComponent(p.nazwa.toLowerCase())}`}
-                      style={{ color: '#11110f' }}
-                    >
-                      {p.nazwa}
-                    </Link>
-                    {i < praca.pojecia.length - 1 ? ', ' : ''}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
+      {/* Tropy: pojęcia → segment → dziedziny → style — bez nagłówków, bez prefiksów */}
+      {hasTropy && (
+        <div
+          style={{
+            marginTop: '40px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          }}
+        >
+          {praca.pojecia.length > 0 && (
+            <div className="ws-tropy" style={tropyStyle}>
+              {praca.pojecia.map((p, i) => (
+                <span key={p.id}>
+                  <Link
+                    href={`/kolekcja?tag=${encodeURIComponent(p.nazwa.toLowerCase())}`}
+                  >
+                    {p.nazwa}
+                  </Link>
+                  {i < praca.pojecia.length - 1 && (
+                    <span className="sep" aria-hidden="true">·</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
 
-      {/* KLASYFIKACJA (segmenty + style + dziedziny) */}
-      {hasKlasyfikacja && (
-        <>
-          <div style={sectionHeader}>Klasyfikacja</div>
-          <div style={sectionBody}>
-            {praca.segmenty.length > 0 && (
-              <div style={{ marginBottom: '6px' }}>
-                Segmenty: {praca.segmenty.map((s) => s.nazwa).join(', ')}
-              </div>
-            )}
-            {praca.style.length > 0 && (
-              <div style={{ marginBottom: '6px' }}>
-                Style: {praca.style.map((s) => s.nazwa).join(', ')}
-              </div>
-            )}
-            {praca.dziedziny.length > 0 && (
-              <div>
-                Dziedziny: {praca.dziedziny.map((d) => d.nazwa).join(', ')}
-              </div>
-            )}
-          </div>
-        </>
+          {praca.segmenty.length > 0 && (
+            <div style={segmentStyle}>
+              {praca.segmenty.map((s) => s.nazwa).join(', ')}
+            </div>
+          )}
+
+          {praca.dziedziny.length > 0 && (
+            <div className="ws-tropy" style={tropyStyle}>
+              {praca.dziedziny.map((d, i) => (
+                <span key={d.id}>
+                  <Link
+                    href={`/kolekcja?tag=${encodeURIComponent(d.nazwa.toLowerCase())}`}
+                  >
+                    {d.nazwa}
+                  </Link>
+                  {i < praca.dziedziny.length - 1 && (
+                    <span className="sep" aria-hidden="true">·</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {praca.style.length > 0 && (
+            <div className="ws-tropy" style={tropyStyle}>
+              {praca.style.map((s, i) => (
+                <span key={s.id}>
+                  <Link
+                    href={`/kolekcja?tag=${encodeURIComponent(s.nazwa.toLowerCase())}`}
+                  >
+                    {s.nazwa}
+                  </Link>
+                  {i < praca.style.length - 1 && (
+                    <span className="sep" aria-hidden="true">·</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* PROWENIENCJA */}
@@ -285,6 +309,23 @@ export default function WorkDetailSidebar({
           <div style={sectionBody}>{praca.literatura}</div>
         </>
       )}
+
+      <style>{`
+        .ws-tropy a {
+          color: #888;
+          text-decoration: none;
+          border-bottom: 1px solid transparent;
+          transition: color .15s, border-color .15s;
+        }
+        .ws-tropy a:hover {
+          color: #11110f;
+          border-bottom-color: #11110f;
+        }
+        .ws-tropy .sep {
+          color: #ccc;
+          margin: 0 6px;
+        }
+      `}</style>
     </div>
   )
 }
