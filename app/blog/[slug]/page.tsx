@@ -176,7 +176,7 @@ export default async function BlogDetailPage({
       praca:prace!artykuly_praca_id_fkey(id, id_pracy, tytul, rok, technika, wymiary_pracy, artysta:artysci(id, nazwisko_i_imie, url_artysty)),
       viewing_room!artykuly_viewing_room_id_fkey(id, slug, tytul_pl, podtytul_pl, status_publiczny),
       zdjecia:artykuly_zdjecia(id, url, alt, podpis, kolejnosc),
-      pojecia:artykuly_pojecia(pojecie:pojecia(id, nazwa, slug)),
+      pojecia:pojecia_artykuly(pojecie:pojecia(id, nazwa, slug)),
       artysci_powiazani:artykuly_artysci(rola, kolejnosc, artysta:artysci(id, nazwisko_i_imie, url_artysty)),
       prace_powiazane:artykuly_prace(kontekst, kolejnosc, praca:prace(id, id_pracy, tytul, rok, artysta:artysci(id, nazwisko_i_imie, url_artysty))),
       vr_powiazane:artykuly_viewing_room(vr:viewing_room(id, slug, tytul_pl, podtytul_pl, status_publiczny))

@@ -95,7 +95,7 @@ export default async function BlogPage({
       pokaz_na_home, wyrozniony, priorytet, typ_artykulu,
       kategoria, autor, tagi, data_publikacji, created_at,
       artysta:artysci!artykuly_artysta_id_fkey(id, nazwisko_i_imie, url_artysty),
-      pojecia:artykuly_pojecia(pojecie:pojecia(id, nazwa, slug))
+      pojecia:pojecia_artykuly(pojecie:pojecia(id, nazwa, slug))
     `
     )
     .eq('status_publiczny', 'opublikowany')
