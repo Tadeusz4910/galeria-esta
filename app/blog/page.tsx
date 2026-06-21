@@ -121,11 +121,8 @@ export default async function BlogPage({
       })
     : all
 
-  const featured =
-    filtered.find((a) => a.pokaz_na_home === true) ?? null
-  const rest = featured
-    ? filtered.filter((a) => a.id !== featured.id)
-    : filtered
+  // Jedna jednolita lista — kolejność z sortowania zapytania (pokaz_na_home →
+  // wyrozniony → priorytet → daty); parzystość indeksu steruje stroną zdjęcia.
 
   return (
     <main
@@ -149,101 +146,114 @@ export default async function BlogPage({
           .blog-hero { padding: 140px 64px 100px; }
         }
 
-        .blog-featured {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 32px;
-          padding: 80px 32px;
-          max-width: 1280px;
+        .blog-list {
+          max-width: 1100px;
           margin: 0 auto;
-          border-bottom: 1px solid #f0ebe2;
+          padding: 80px 32px 120px;
         }
         @media (min-width: 900px) {
-          .blog-featured {
-            grid-template-columns: 6fr 4fr;
-            gap: 64px;
-            padding: 96px 64px;
-            align-items: center;
-          }
-        }
-        .blog-featured-img {
-          width: 100%;
-          aspect-ratio: 16 / 10;
-          background: #f0ebe2;
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .blog-featured-img img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        .blog-placeholder {
-          font-family: ${C};
-          font-style: italic;
-          font-size: 26px;
-          letter-spacing: 0.18em;
-          color: #b8aa92;
+          .blog-list { padding: 96px 64px 160px; }
         }
 
-        .blog-grid {
+        .blog-row {
           display: grid;
           grid-template-columns: 1fr;
-          column-gap: 48px;
-          row-gap: 64px;
-          padding: 80px 32px 120px;
-          max-width: 1280px;
-          margin: 0 auto;
+          gap: 24px;
+          align-items: center;
+          margin-bottom: 80px;
         }
-        @media (min-width: 700px) {
-          .blog-grid {
-            grid-template-columns: repeat(2, 1fr);
-            row-gap: 72px;
+        .blog-row:last-child { margin-bottom: 0; }
+        @media (min-width: 768px) {
+          .blog-row {
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 100px;
           }
+          /* parzyste (reverse): tekst LEWO, zdjęcie PRAWO */
+          .blog-row.reverse .blog-row-img { order: 2; }
+          .blog-row.reverse .blog-row-txt { order: 1; }
         }
-        @media (min-width: 1100px) {
-          .blog-grid {
-            column-gap: 56px;
-            padding: 96px 64px 160px;
-          }
-        }
+        /* na mobile (1-kol) zdjęcie zawsze NAD tekstem — order naturalny z DOM */
 
-        .blog-card-img {
+        .blog-row-img {
+          display: block;
           width: 100%;
           aspect-ratio: 4 / 3;
           background: #f0ebe2;
+          position: relative;
           overflow: hidden;
-          margin-bottom: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
-        .blog-card-img img {
+        .blog-row-img img {
           width: 100%;
           height: 100%;
           object-fit: cover;
           transition: transform .5s ease;
         }
-        .blog-card:hover .blog-card-img img {
-          transform: scale(1.03);
+        .blog-row:hover .blog-row-img img { transform: scale(1.03); }
+        .blog-row-img .placeholder {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: ${C};
+          font-style: italic;
+          font-size: 32px;
+          color: #b8a169;
+          letter-spacing: 4px;
         }
 
-        .blog-pojecia a {
+        .blog-row-meta {
+          font-family: ${I};
+          font-size: 11px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #888;
+          margin-bottom: 16px;
+        }
+        .blog-row-txt h2 {
+          font-family: ${C};
+          font-weight: 300;
+          font-size: clamp(28px, 3vw, 42px);
+          line-height: 1.15;
+          color: #11110f;
+          margin: 0 0 20px;
+        }
+        .blog-row-txt h2 a { text-decoration: none; color: inherit; }
+        .blog-row-txt p {
+          font-family: ${I};
+          font-size: 16px;
+          line-height: 1.7;
+          color: #555;
+          margin: 0 0 24px;
+        }
+        .blog-row-czytaj {
+          display: inline-block;
+          font-family: ${I};
+          font-size: 12px;
+          color: #11110f;
+          text-decoration: none;
+          border-bottom: 1px solid #11110f;
+          padding-bottom: 2px;
+        }
+        .blog-row-pojecia {
+          font-family: ${I};
+          font-size: 12px;
+          letter-spacing: 0.04em;
+          color: #888;
+          margin-bottom: 24px;
+        }
+        .blog-row-pojecia a {
           color: #888;
           text-decoration: none;
           border-bottom: 1px solid transparent;
           transition: color .15s, border-color .15s;
         }
-        .blog-pojecia a:hover {
+        .blog-row-pojecia a:hover {
           color: #11110f;
           border-bottom-color: #11110f;
         }
-        .blog-pojecia .sep {
-          color: #ccc;
-          margin: 0 6px;
-        }
+        .blog-row-pojecia .sep { color: #ccc; margin: 0 6px; }
       `}</style>
 
       <Nav active="blog" />
@@ -353,109 +363,11 @@ export default async function BlogPage({
         </div>
       )}
 
-      {/* WYROZNIONY ARTYKUL (60/40 @900px+) */}
-      {featured && (
-        <section className="blog-featured" aria-label="Wyróżniona notatka">
-          <Link
-            href={`/blog/${featured.slug}`}
-            style={{ textDecoration: 'none', display: 'block' }}
-          >
-            <div className="blog-featured-img">
-              {featured.img_cover ? (
-                <img
-                  src={featured.img_cover}
-                  alt={featured.img_alt ?? featured.tytul ?? 'Galeria ESTA'}
-                />
-              ) : (
-                <span className="blog-placeholder">ESTA</span>
-              )}
-            </div>
-          </Link>
-
-          <div>
-            <div
-              style={{
-                fontFamily: I,
-                fontSize: '11px',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: '#888',
-                marginBottom: '16px',
-              }}
-            >
-              {[
-                formatPolishDate(
-                  featured.data_publikacji ?? featured.created_at
-                ),
-                featured.kategoria ?? featured.typ_artykulu,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </div>
-
-            <h2
-              style={{
-                fontFamily: C,
-                fontWeight: 300,
-                fontSize: 'clamp(32px, 3.5vw, 44px)',
-                lineHeight: 1.15,
-                color: '#11110f',
-                margin: 0,
-                marginBottom: '20px',
-              }}
-            >
-              <Link
-                href={`/blog/${featured.slug}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                {featured.tytul ?? 'Bez tytułu'}
-              </Link>
-            </h2>
-
-            {featured.opis_krotki && (
-              <p
-                style={{
-                  fontFamily: I,
-                  fontSize: '16px',
-                  lineHeight: 1.7,
-                  color: '#555',
-                  margin: 0,
-                  marginBottom: '24px',
-                }}
-              >
-                {featured.opis_krotki}
-              </p>
-            )}
-
-            <FeaturedPojecia artykul={featured} />
-
-            <Link
-              href={`/blog/${featured.slug}`}
-              style={{
-                display: 'inline-block',
-                marginTop: '28px',
-                fontFamily: I,
-                fontSize: '12px',
-                color: '#11110f',
-                textDecoration: 'none',
-                borderBottom: '1px solid #11110f',
-                paddingBottom: '2px',
-              }}
-            >
-              Czytaj dalej →
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* GRID LISTA (pozostałe) */}
-      {rest.length > 0 && (
-        <section
-          className="blog-grid"
-          aria-label="Lista notatek chronologicznie"
-        >
-          {rest.map((a) => (
-            <BlogCard key={a.id} artykul={a} />
+      {/* LISTA NAPRZEMIENNA — wszystkie notatki równe, 2-kol 50/50 @≥768px */}
+      {!error && filtered.length > 0 && (
+        <section className="blog-list" aria-label="Lista notatek">
+          {filtered.map((a, i) => (
+            <BlogRow key={a.id} artykul={a} reverse={i % 2 === 1} />
           ))}
         </section>
       )}
@@ -478,160 +390,80 @@ export default async function BlogPage({
   )
 }
 
-function FeaturedPojecia({ artykul }: { artykul: DbArtykul }) {
-  const pojecia = getPojecia(artykul).slice(0, 4)
-  const tagiFallback = parseTagi(artykul.tagi).slice(0, 4)
-  if (pojecia.length === 0 && tagiFallback.length === 0) return null
+function BlogRow({
+  artykul,
+  reverse,
+}: {
+  artykul: DbArtykul
+  reverse: boolean
+}) {
+  const dataPL = formatPolishDate(artykul.data_publikacji ?? artykul.created_at)
+  const kategoria = artykul.kategoria ?? artykul.typ_artykulu
+  const meta = [dataPL, kategoria ? kategoria.toUpperCase() : null]
+    .filter(Boolean)
+    .join(' · ')
 
-  return (
-    <div
-      className="blog-pojecia"
-      style={{
-        fontFamily: I,
-        fontSize: '12px',
-        letterSpacing: '0.04em',
-        color: '#888',
-      }}
-    >
-      {pojecia.length > 0
-        ? pojecia.map((p, i) => (
-            <span key={p.id}>
-              <Link href={`/blog?tag=${encodeURIComponent(p.slug)}`}>
-                {p.nazwa}
-              </Link>
-              {i < pojecia.length - 1 && (
-                <span className="sep" aria-hidden="true">·</span>
-              )}
-            </span>
-          ))
-        : tagiFallback.map((t, i) => (
-            <span key={t}>
-              <Link href={`/blog?tag=${encodeURIComponent(t.toLowerCase())}`}>
-                {t}
-              </Link>
-              {i < tagiFallback.length - 1 && (
-                <span className="sep" aria-hidden="true">·</span>
-              )}
-            </span>
-          ))}
-    </div>
-  )
-}
-
-function BlogCard({ artykul }: { artykul: DbArtykul }) {
   const pojecia = getPojecia(artykul).slice(0, 3)
   const tagiFallback = parseTagi(artykul.tagi).slice(0, 3)
-  const dataRaw = artykul.data_publikacji ?? artykul.created_at
-  const dataPL = formatPolishDate(dataRaw)
-  const kategoria = artykul.kategoria ?? artykul.typ_artykulu
 
   return (
-    <article
-      className="blog-card"
-      style={{ display: 'flex', flexDirection: 'column' }}
-    >
+    <article className={`blog-row${reverse ? ' reverse' : ''}`}>
       <Link
         href={`/blog/${artykul.slug}`}
-        style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+        className="blog-row-img"
+        aria-label={artykul.tytul ?? 'Notatka'}
       >
-        <div className="blog-card-img">
-          {artykul.img_cover ? (
-            <img
-              src={artykul.img_cover}
-              alt={artykul.img_alt ?? artykul.tytul ?? 'Galeria ESTA'}
-            />
-          ) : (
-            <span className="blog-placeholder">ESTA</span>
-          )}
-        </div>
+        {artykul.img_cover ? (
+          <img
+            src={artykul.img_cover}
+            alt={artykul.img_alt ?? artykul.tytul ?? 'Galeria ESTA'}
+          />
+        ) : (
+          <div className="placeholder">ESTA</div>
+        )}
       </Link>
 
-      <div
-        style={{
-          fontFamily: I,
-          fontSize: '11px',
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: '#888',
-          marginBottom: '12px',
-        }}
-      >
-        {[dataPL, kategoria].filter(Boolean).join(' · ')}
-      </div>
+      <div className="blog-row-txt">
+        {meta && <div className="blog-row-meta">{meta}</div>}
+        <h2>
+          <Link href={`/blog/${artykul.slug}`}>
+            {artykul.tytul ?? 'Bez tytułu'}
+          </Link>
+        </h2>
+        {artykul.opis_krotki && <p>{artykul.opis_krotki}</p>}
 
-      <h3
-        style={{
-          fontFamily: C,
-          fontWeight: 400,
-          fontSize: 'clamp(22px, 2vw, 28px)',
-          lineHeight: 1.2,
-          color: '#11110f',
-          margin: 0,
-          marginBottom: '14px',
-        }}
-      >
-        <Link
-          href={`/blog/${artykul.slug}`}
-          style={{ textDecoration: 'none', color: 'inherit' }}
-        >
-          {artykul.tytul ?? 'Bez tytułu'}
+        {(pojecia.length > 0 || tagiFallback.length > 0) && (
+          <div className="blog-row-pojecia">
+            {pojecia.length > 0
+              ? pojecia.map((p, i) => (
+                  <span key={p.id}>
+                    <Link href={`/blog?tag=${encodeURIComponent(p.slug)}`}>
+                      {p.nazwa}
+                    </Link>
+                    {i < pojecia.length - 1 && (
+                      <span className="sep" aria-hidden="true">·</span>
+                    )}
+                  </span>
+                ))
+              : tagiFallback.map((t, i) => (
+                  <span key={t}>
+                    <Link
+                      href={`/blog?tag=${encodeURIComponent(t.toLowerCase())}`}
+                    >
+                      {t}
+                    </Link>
+                    {i < tagiFallback.length - 1 && (
+                      <span className="sep" aria-hidden="true">·</span>
+                    )}
+                  </span>
+                ))}
+          </div>
+        )}
+
+        <Link href={`/blog/${artykul.slug}`} className="blog-row-czytaj">
+          Czytaj dalej →
         </Link>
-      </h3>
-
-      {artykul.opis_krotki && (
-        <p
-          style={{
-            fontFamily: I,
-            fontSize: '14px',
-            lineHeight: 1.6,
-            color: '#555',
-            margin: 0,
-            marginBottom: '20px',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {artykul.opis_krotki}
-        </p>
-      )}
-
-      {(pojecia.length > 0 || tagiFallback.length > 0) && (
-        <div
-          className="blog-pojecia"
-          style={{
-            fontFamily: I,
-            fontSize: '11px',
-            letterSpacing: '0.04em',
-            color: '#888',
-          }}
-        >
-          {pojecia.length > 0
-            ? pojecia.map((p, i) => (
-                <span key={p.id}>
-                  <Link href={`/blog?tag=${encodeURIComponent(p.slug)}`}>
-                    {p.nazwa}
-                  </Link>
-                  {i < pojecia.length - 1 && (
-                    <span className="sep" aria-hidden="true">·</span>
-                  )}
-                </span>
-              ))
-            : tagiFallback.map((t, i) => (
-                <span key={t}>
-                  <Link
-                    href={`/blog?tag=${encodeURIComponent(t.toLowerCase())}`}
-                  >
-                    {t}
-                  </Link>
-                  {i < tagiFallback.length - 1 && (
-                    <span className="sep" aria-hidden="true">·</span>
-                  )}
-                </span>
-              ))}
-        </div>
-      )}
+      </div>
     </article>
   )
 }

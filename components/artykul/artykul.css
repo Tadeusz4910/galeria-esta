@@ -1,0 +1,618 @@
+/* ─────────────────────────────────────────────────────────────
+   ESTA — BIBLIOTEKA KOMPONENTÓW NARRACYJNYCH (Notatki ESTA)
+   Źródło: docs/bern-mockup.html
+
+   WSZYSTKIE selektory przeprefiksowane pod .esta-notatka — to global
+   CSS (import w komponencie = global scope), więc scoping chroni Nav,
+   footer i pozostałe trasy przed wyciekiem stylów/resetów.
+
+   10 typów bloków:
+   T01 HERO          T06 TRIPTYCH
+   T02 INTRO         T07 MOMENT
+   T03 SOLO          T08 ROZKŁADÓWKA
+   T04 TEKST_MIĘDZY  T09 OUTRO
+   T05 PIONOWE_OBOK  T10 POWIĄZANIA
+   ───────────────────────────────────────────────────────────── */
+
+/* TOKENY DESIGNU — na wrapperze, nie na :root (brak wycieku zmiennych) */
+.esta-notatka {
+  --tlo:           #fdfcfa;
+  --tekst:         #1a1a1a;
+  --tekst-jasny:   #555;
+  --podpis:        #777;
+  --pojecia:       #999;
+  --linia:         #e8e4dd;
+  --akcent:        #6b5b3a;
+
+  --serif:  'Cormorant Garamond', Georgia, serif;
+  --sans:   'Instrument Sans', system-ui, sans-serif;
+
+  --o-akapit:         24px;
+  --o-zdjecie-podpis: 12px;
+  --o-podpis-tekst:   48px;
+  --o-sekcja:         140px;
+  --o-sekcja-m:       80px;
+  --o-zdjecia:        24px;
+
+  --w-tekst:    700px;
+  --w-tekst-w:  640px;
+  --w-zdjecie:  1280px;
+  --w-page:     1440px;
+
+  background: var(--tlo);
+  color: var(--tekst);
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 21px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Reset wyłącznie wewnątrz notatki */
+.esta-notatka * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── TYPOGRAFIA BAZOWA ────────────────────────────────────── */
+.esta-notatka p { margin-bottom: var(--o-akapit); }
+.esta-notatka p:last-child { margin-bottom: 0; }
+
+.esta-notatka h1,
+.esta-notatka h2,
+.esta-notatka h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.esta-notatka a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--linia);
+  transition: border-color 0.2s;
+}
+.esta-notatka a:hover { border-bottom-color: var(--tekst); }
+
+/* ─── KONTENERY ────────────────────────────────────────────── */
+.esta-notatka .kolumna-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.esta-notatka .kolumna-zdjecie {
+  max-width: var(--w-zdjecie);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.esta-notatka .kolumna-pelna { width: 100%; }
+
+/* ════ T01 — HERO ════════════════════════════════════════════ */
+.esta-notatka .t01-hero {
+  position: relative;
+  width: 100%;
+  height: 88vh;
+  min-height: 600px;
+  overflow: hidden;
+  margin-bottom: var(--o-sekcja);
+}
+.esta-notatka .t01-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.95);
+}
+.esta-notatka .t01-hero-tekst {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 80px;
+  padding: 0 48px;
+  color: white;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.4);
+}
+.esta-notatka .t01-hero-nadtytul {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 24px;
+  display: block;
+}
+.esta-notatka .t01-hero-tytul {
+  font-family: var(--serif);
+  font-size: clamp(48px, 7vw, 92px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  max-width: 1100px;
+}
+.esta-notatka .t01-hero-podtytul {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(20px, 2.2vw, 28px);
+  font-weight: 400;
+  opacity: 0.92;
+  max-width: 720px;
+}
+.esta-notatka .t01-hero-podpis {
+  position: absolute;
+  right: 32px;
+  bottom: 16px;
+  font-family: var(--sans);
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.05em;
+}
+
+/* ════ T02 — INTRO ═══════════════════════════════════════════ */
+.esta-notatka .t02-intro { margin-bottom: var(--o-sekcja); }
+.esta-notatka .t02-intro-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 22px;
+  line-height: 1.7;
+}
+.esta-notatka .t02-intro-pojecia {
+  max-width: var(--w-tekst);
+  margin: 64px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════ T03 — SOLO ════════════════════════════════════════════ */
+.esta-notatka .t03-solo { margin-bottom: var(--o-sekcja); }
+.esta-notatka .t03-solo-img {
+  width: 100%;
+  max-width: var(--w-zdjecie);
+  margin: 0 auto;
+  display: block;
+  height: auto;
+}
+/* Realne zdjęcie (nie placeholder) — ogranicz wysokość, by sekcja mieściła się w ekranie */
+.esta-notatka .t03-solo img {
+  width: auto;
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  margin: 0 auto;
+}
+.esta-notatka .t03-solo-podpis {
+  max-width: var(--w-zdjecie);
+  margin: var(--o-zdjecie-podpis) auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+
+/* ════ T04 — TEKST_MIĘDZY ════════════════════════════════════ */
+.esta-notatka .t04-tekst-miedzy { margin-bottom: var(--o-sekcja); }
+.esta-notatka .t04-tytul-sekcji {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin: 0 auto 56px;
+  max-width: var(--w-tekst);
+  padding: 0 24px;
+}
+.esta-notatka .t04-zdjecie-duze {
+  width: 100%;
+  max-width: var(--w-zdjecie);
+  margin: 0 auto var(--o-podpis-tekst);
+  display: block;
+  height: auto;
+}
+/* Realne duże zdjęcie (nie placeholder, nie para lewe/prawe) — ogranicz wysokość */
+.esta-notatka img.t04-zdjecie-duze {
+  max-height: 80vh;
+  object-fit: contain;
+}
+.esta-notatka .t04-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 21px;
+  line-height: 1.75;
+}
+.esta-notatka .t04-para-zdjec {
+  max-width: var(--w-zdjecie);
+  margin: var(--o-podpis-tekst) auto 0;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--o-zdjecia);
+}
+.esta-notatka .t04-para-zdjec img {
+  width: 100%;
+  height: auto;
+  max-height: 65vh;
+  object-fit: contain;
+  display: block;
+}
+.esta-notatka .t04-podpis-mini {
+  max-width: var(--w-zdjecie);
+  margin: var(--o-zdjecie-podpis) auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+.esta-notatka .t04-pojecia {
+  max-width: var(--w-tekst);
+  margin: 48px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════ T05 — PIONOWE_OBOK ════════════════════════════════════ */
+.esta-notatka .t05-pionowe-obok { margin-bottom: var(--o-sekcja); }
+.esta-notatka .t05-grid {
+  max-width: var(--w-zdjecie);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 45% 55%;
+  gap: 64px;
+  align-items: start;
+}
+/* Wariant: zdjęcie po prawej */
+.esta-notatka .t05-grid.t05-foto-prawo { grid-template-columns: 55% 45%; }
+.esta-notatka .t05-grid img {
+  width: 100%;
+  height: auto;
+  max-height: 75vh;
+  object-fit: contain;
+  display: block;
+}
+.esta-notatka .t05-grid-tekst { padding-top: 24px; }
+.esta-notatka .t05-grid-tekst h2 {
+  font-size: clamp(32px, 3.5vw, 44px);
+  margin-bottom: 32px;
+}
+.esta-notatka .t05-grid-tekst p {
+  font-size: 19px;
+  line-height: 1.75;
+}
+.esta-notatka .t05-podpis {
+  max-width: var(--w-zdjecie);
+  margin: 32px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+.esta-notatka .t05-pojecia {
+  max-width: var(--w-zdjecie);
+  margin: 24px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════ T06 — TRIPTYCH ════════════════════════════════════════ */
+.esta-notatka .t06-triptych { margin-bottom: var(--o-sekcja); }
+.esta-notatka .t06-tytul {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 400;
+  margin: 0 auto 56px;
+  max-width: var(--w-tekst);
+  padding: 0 24px;
+}
+.esta-notatka .t06-grid {
+  max-width: var(--w-zdjecie);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--o-zdjecia);
+}
+.esta-notatka .t06-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  aspect-ratio: 3/4;
+}
+.esta-notatka .t06-podpis {
+  max-width: var(--w-zdjecie);
+  margin: var(--o-zdjecie-podpis) auto var(--o-podpis-tekst);
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+.esta-notatka .t06-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 21px;
+  line-height: 1.75;
+}
+.esta-notatka .t06-pojecia {
+  max-width: var(--w-tekst);
+  margin: 48px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════ T07 — MOMENT ══════════════════════════════════════════ */
+.esta-notatka .t07-moment {
+  margin-bottom: var(--o-sekcja);
+  text-align: center;
+}
+.esta-notatka .t07-img-wrap {
+  max-width: 75%;
+  margin: 0 auto;
+}
+.esta-notatka .t07-img-wrap img {
+  width: 100%;
+  height: auto;
+  max-height: 75vh;
+  object-fit: contain;
+  display: block;
+}
+.esta-notatka .t07-podpis {
+  margin-top: var(--o-zdjecie-podpis);
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+.esta-notatka .t07-cytat {
+  max-width: var(--w-tekst-w);
+  margin: 80px auto 0;
+  padding: 0 24px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--tekst-jasny);
+  text-align: center;
+  letter-spacing: -0.005em;
+}
+.esta-notatka .t07-cytat-autor {
+  margin-top: 16px;
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pojecia);
+}
+
+/* ════ T08 — ROZKŁADÓWKA ═════════════════════════════════════ */
+.esta-notatka .t08-rozkladowka { margin-bottom: var(--o-sekcja); }
+.esta-notatka .t08-tytul {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 400;
+  margin: 0 auto 56px;
+  max-width: var(--w-tekst);
+  padding: 0 24px;
+}
+.esta-notatka .t08-blok { margin-bottom: 80px; }
+.esta-notatka .t08-blok:last-child { margin-bottom: 0; }
+.esta-notatka .t08-blok-img {
+  width: 100%;
+  max-width: var(--w-zdjecie);
+  margin: 0 auto 40px;
+  display: block;
+  height: auto;
+}
+/* Realne zdjęcie bloku (nie placeholder) — ogranicz wysokość pionowych ujęć */
+.esta-notatka .t08-blok img {
+  max-height: 70vh;
+  object-fit: contain;
+}
+.esta-notatka .t08-blok-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 21px;
+  line-height: 1.75;
+}
+.esta-notatka .t08-pojecia {
+  max-width: var(--w-tekst);
+  margin: 48px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════ T09 — OUTRO ═══════════════════════════════════════════ */
+.esta-notatka .t09-outro {
+  margin-bottom: var(--o-sekcja);
+  position: relative;
+}
+.esta-notatka .t09-outro::before {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 1px;
+  background: var(--linia);
+  margin: 0 auto 80px;
+}
+.esta-notatka .t09-outro-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 22px;
+  line-height: 1.7;
+}
+.esta-notatka .t09-outro-tekst p:first-child {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 28px;
+  color: var(--tekst-jasny);
+  margin-bottom: 40px;
+}
+
+/* ════ T10 — POWIĄZANIA ══════════════════════════════════════ */
+.esta-notatka .t10-powiazania {
+  margin-bottom: 120px;
+  padding-top: 80px;
+  border-top: 1px solid var(--linia);
+}
+.esta-notatka .t10-tytul {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 80px;
+  padding: 0 24px;
+}
+.esta-notatka .t10-grid {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 96px;
+}
+.esta-notatka .t10-kolumna h3 {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pojecia);
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--linia);
+}
+.esta-notatka .t10-kolumna ul { list-style: none; }
+.esta-notatka .t10-kolumna li { margin-bottom: 16px; }
+.esta-notatka .t10-kolumna a {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  border-bottom: none;
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s;
+}
+.esta-notatka .t10-kolumna a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--akcent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.esta-notatka .t10-kolumna a:hover { color: var(--akcent); }
+.esta-notatka .t10-kolumna a:hover::after { transform: scaleX(1); }
+.esta-notatka .t10-kolumna .opis {
+  display: block;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--pojecia);
+  margin-top: 4px;
+}
+
+/* ─── PLACEHOLDER OBRAZÓW — subtelny gradient + ikona ramki ──────
+   Bez napisów "PLACEHOLDER:". Pozwala wypchnąć notatkę LIVE zanim
+   wgrane są realne zdjęcia; aspect-ratio trzyma layout. */
+.esta-notatka .placeholder-img {
+  background: linear-gradient(135deg, #efece6 0%, #ddd8cf 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(107, 91, 58, 0.28);
+  aspect-ratio: 16/10;
+  position: relative;
+}
+.esta-notatka .placeholder-img svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+.esta-notatka .placeholder-img.pionowe { aspect-ratio: 3/4; }
+.esta-notatka .placeholder-img.panorama { aspect-ratio: 21/9; }
+.esta-notatka .placeholder-img.kwadrat { aspect-ratio: 1; }
+
+/* Hero placeholder — wypełnia całą sekcję, symuluje krajobraz */
+.esta-notatka .t01-hero .placeholder-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  background: linear-gradient(180deg,
+    #6b7a8a 0%,
+    #8a9aa8 30%,
+    #a8b5be 60%,
+    #c4ccd0 100%);
+}
+.esta-notatka .t01-hero .placeholder-img svg { color: rgba(255,255,255,0.4); }
+
+/* ════ RESPONSYWNOŚĆ — Mobile (<768px) ═══════════════════════ */
+@media (max-width: 768px) {
+  .esta-notatka {
+    font-size: 18px;
+    --o-sekcja: 80px;
+    --o-podpis-tekst: 32px;
+  }
+  .esta-notatka .t01-hero { height: 75vh; min-height: 500px; }
+  .esta-notatka .t01-hero-tekst { bottom: 48px; padding: 0 24px; }
+  .esta-notatka .t02-intro-tekst { font-size: 18px; }
+  .esta-notatka .t04-tekst,
+  .esta-notatka .t06-tekst,
+  .esta-notatka .t08-blok-tekst { font-size: 18px; }
+  .esta-notatka .t04-para-zdjec { grid-template-columns: 1fr; }
+  .esta-notatka .t05-grid,
+  .esta-notatka .t05-grid.t05-foto-prawo { grid-template-columns: 1fr; gap: 32px; }
+  .esta-notatka .t05-grid-tekst { padding-top: 0; }
+  .esta-notatka .t06-grid { grid-template-columns: 1fr; }
+  .esta-notatka .t07-img-wrap { max-width: 100%; }
+  .esta-notatka .t07-cytat { margin-top: 48px; font-size: 22px; }
+  .esta-notatka .t10-grid { grid-template-columns: 1fr; gap: 64px; }
+}

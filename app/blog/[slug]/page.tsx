@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Nav from '@/components/Nav'
 import { workSlug, artistSlug } from '@/lib/slug'
+import ArtykulRender from '@/components/artykul/ArtykulRender'
+import type { SekcjaArtykulu } from '@/lib/types-artykul'
 
 export const revalidate = 60
 
@@ -83,6 +85,9 @@ type DbArtykul = {
     | { kontekst: string | null; kolejnosc: number | null; praca: DbPraca | null }[]
     | null
   vr_powiazane: { vr: DbVR | null }[] | null
+  sekcje:
+    | { id: string; kolejnosc: number; typ_sekcji: string; dane: unknown }[]
+    | null
 }
 
 function formatPolishDate(iso: string | null): string {
@@ -179,7 +184,8 @@ export default async function BlogDetailPage({
       pojecia:pojecia_artykuly(pojecie:pojecia(id, nazwa, slug)),
       artysci_powiazani:artykuly_artysci(rola, kolejnosc, artysta:artysci(id, nazwisko_i_imie, url_artysty)),
       prace_powiazane:artykuly_prace(kontekst, kolejnosc, praca:prace(id, id_pracy, tytul, rok, artysta:artysci(id, nazwisko_i_imie, url_artysty))),
-      vr_powiazane:artykuly_viewing_room(vr:viewing_room(id, slug, tytul_pl, podtytul_pl, status_publiczny))
+      vr_powiazane:artykuly_viewing_room(vr:viewing_room(id, slug, tytul_pl, podtytul_pl, status_publiczny)),
+      sekcje:artykuly_sekcje(id, kolejnosc, typ_sekcji, dane)
     `
     )
     .eq('slug', slug)
@@ -189,6 +195,55 @@ export default async function BlogDetailPage({
   if (error || !data) notFound()
 
   const artykul = data as unknown as DbArtykul
+
+  // ── NOTATKA NARRACYJNA (sekcje T01–T10) ───────────────────────────
+  // Jeśli artykuł ma sekcje → renderuj bibliotekę komponentów narracyjnych.
+  // Jeśli nie (np. Recycled News, stary format) → fallback poniżej.
+  const sekcje = ((artykul.sekcje ?? []) as unknown as SekcjaArtykulu[])
+    .slice()
+    .sort((a, b) => a.kolejnosc - b.kolejnosc)
+
+  if (sekcje.length > 0) {
+    const dataPL = formatPolishDate(
+      artykul.data_publikacji ?? artykul.created_at
+    )
+    const kategoria = artykul.kategoria ?? artykul.typ_artykulu
+    const metaLine = [
+      dataPL,
+      kategoria,
+      artykul.autor,
+      artykul.czas_czytania_min
+        ? `${artykul.czas_czytania_min} min czytania`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+
+    return (
+      <main
+        style={{ background: '#fdfcfa', color: '#1a1a1a', minHeight: '100vh' }}
+      >
+        <Nav active="blog" />
+        <ArtykulRender sekcje={sekcje} />
+        <footer
+          style={{
+            padding: '64px 32px 80px',
+            borderTop: '1px solid #e8e4dd',
+            fontFamily: I,
+            fontSize: '13px',
+            letterSpacing: '0.05em',
+            color: '#777',
+            textAlign: 'center',
+          }}
+        >
+          {metaLine && (
+            <div style={{ marginBottom: '12px' }}>Notatki ESTA · {metaLine}</div>
+          )}
+          Galeria ESTA · Gliwice · od 1998
+        </footer>
+      </main>
+    )
+  }
 
   const zdjecia = (artykul.zdjecia ?? [])
     .filter((z) => Boolean(z.url))

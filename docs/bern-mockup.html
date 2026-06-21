@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konstrukcja i rytm. Notatki z Zentrum Paul Klee w Bernie | Galeria ESTA</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ─────────────────────────────────────────────────────────────
+   ESTA — BIBLIOTEKA KOMPONENTÓW NARRACYJNYCH
+   Mockup notatki Bern (Centrum Paul Klee)
+   
+   10 typów bloków:
+   T01 HERO          T06 TRIPTYCH
+   T02 INTRO         T07 MOMENT (zdjęcie + cytat)
+   T03 SOLO          T08 ROZKŁADÓWKA
+   T04 TEKST_MIĘDZY  T09 OUTRO
+   T05 PIONOWE_OBOK  T10 POWIĄZANIA
+   ───────────────────────────────────────────────────────────── */
+
+/* TOKENY DESIGNU */
+:root {
+  /* Kolory — paleta galeryjna, minimum */
+  --tlo:           #fdfcfa;        /* off-white, ciepły, jak papier do druku */
+  --tekst:         #1a1a1a;        /* nie czarny, lekko grafitowy */
+  --tekst-jasny:   #555;           /* dla cytatów */
+  --podpis:        #777;           /* dla podpisów pod zdjęciami */
+  --pojecia:       #999;           /* dla łańcuchów pojęć */
+  --linia:         #e8e4dd;        /* delikatne separatory */
+  --akcent:        #6b5b3a;        /* przygaszone złoto - dla powiązań */
+  
+  /* Fonty */
+  --serif:  'Cormorant Garamond', Georgia, serif;
+  --sans:   'Instrument Sans', system-ui, sans-serif;
+  
+  /* Oddechy — wg Twoich ustaleń */
+  --o-akapit:        24px;
+  --o-zdjecie-podpis: 12px;
+  --o-podpis-tekst:  48px;
+  --o-sekcja:        140px;     /* duża, na desktop */
+  --o-sekcja-m:      80px;      /* na mobile mniej */
+  --o-zdjecia:       24px;
+  
+  /* Szerokości */
+  --w-tekst:    700px;
+  --w-tekst-w:  640px;          /* węższy dla cytatów */
+  --w-zdjecie:  1280px;
+  --w-page:     1440px;         /* max ramka strony */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--tlo);
+  color: var(--tekst);
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 21px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── KONTENERY ────────────────────────────────────────────── */
+.kolumna-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.kolumna-zdjecie {
+  max-width: var(--w-zdjecie);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.kolumna-pelna {
+  width: 100%;
+}
+
+/* ─── TYPOGRAFIA BAZOWA ────────────────────────────────────── */
+p {
+  margin-bottom: var(--o-akapit);
+}
+
+p:last-child { margin-bottom: 0; }
+
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--linia);
+  transition: border-color 0.2s;
+}
+
+a:hover {
+  border-bottom-color: var(--tekst);
+}
+
+/* ════════════════════════════════════════════════════════════
+   T01 — HERO
+   Pełna szerokość, 85vh, tytuł nałożony lub pod
+   ════════════════════════════════════════════════════════════ */
+.t01-hero {
+  position: relative;
+  width: 100%;
+  height: 88vh;
+  min-height: 600px;
+  overflow: hidden;
+  margin-bottom: var(--o-sekcja);
+}
+
+.t01-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.95);
+}
+
+.t01-hero-tekst {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 80px;
+  padding: 0 48px;
+  color: white;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.4);
+}
+
+.t01-hero-nadtytul {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 24px;
+  display: block;
+}
+
+.t01-hero-tytul {
+  font-family: var(--serif);
+  font-size: clamp(48px, 7vw, 92px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  max-width: 1100px;
+}
+
+.t01-hero-podtytul {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(20px, 2.2vw, 28px);
+  font-weight: 400;
+  opacity: 0.92;
+  max-width: 720px;
+}
+
+.t01-hero-podpis {
+  position: absolute;
+  right: 32px;
+  bottom: 16px;
+  font-family: var(--sans);
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.05em;
+}
+
+/* ════════════════════════════════════════════════════════════
+   T02 — INTRO
+   Wąska kolumna, sam tekst, dużo światła
+   ════════════════════════════════════════════════════════════ */
+.t02-intro {
+  margin-bottom: var(--o-sekcja);
+}
+
+.t02-intro-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 22px;
+  line-height: 1.7;
+}
+
+.t02-intro-pojecia {
+  max-width: var(--w-tekst);
+  margin: 64px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════════════════════════════════════════════════════════════
+   T03 — SOLO
+   Jedno duże zdjęcie + podpis pod
+   ════════════════════════════════════════════════════════════ */
+.t03-solo {
+  margin-bottom: var(--o-sekcja);
+}
+
+.t03-solo-img {
+  width: 100%;
+  max-width: var(--w-zdjecie);
+  margin: 0 auto;
+  display: block;
+  height: auto;
+}
+
+.t03-solo-podpis {
+  max-width: var(--w-zdjecie);
+  margin: var(--o-zdjecie-podpis) auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+
+/* ════════════════════════════════════════════════════════════
+   T04 — TEKST_MIĘDZY
+   foto / tekst / 2 foto (50%+50%)
+   Twoja kluczowa kompozycja: oko widza odpoczywa
+   ════════════════════════════════════════════════════════════ */
+.t04-tekst-miedzy {
+  margin-bottom: var(--o-sekcja);
+}
+
+.t04-tytul-sekcji {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin: 0 auto 56px;
+  max-width: var(--w-tekst);
+  padding: 0 24px;
+}
+
+.t04-zdjecie-duze {
+  width: 100%;
+  max-width: var(--w-zdjecie);
+  margin: 0 auto var(--o-podpis-tekst);
+  display: block;
+  height: auto;
+}
+
+.t04-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 21px;
+  line-height: 1.75;
+}
+
+.t04-para-zdjec {
+  max-width: var(--w-zdjecie);
+  margin: var(--o-podpis-tekst) auto 0;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--o-zdjecia);
+}
+
+.t04-para-zdjec img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.t04-podpis-mini {
+  max-width: var(--w-zdjecie);
+  margin: var(--o-zdjecie-podpis) auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+
+.t04-pojecia {
+  max-width: var(--w-tekst);
+  margin: 48px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════════════════════════════════════════════════════════════
+   T05 — PIONOWE_OBOK
+   Pionowe zdjęcie 45% + tekst 55% obok
+   "wygląda jak książka"
+   ════════════════════════════════════════════════════════════ */
+.t05-pionowe-obok {
+  margin-bottom: var(--o-sekcja);
+}
+
+.t05-grid {
+  max-width: var(--w-zdjecie);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 45% 55%;
+  gap: 64px;
+  align-items: start;
+}
+
+.t05-grid img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.t05-grid-tekst {
+  padding-top: 24px;
+}
+
+.t05-grid-tekst h2 {
+  font-size: clamp(32px, 3.5vw, 44px);
+  margin-bottom: 32px;
+}
+
+.t05-grid-tekst p {
+  font-size: 19px;
+  line-height: 1.75;
+}
+
+.t05-podpis {
+  max-width: var(--w-zdjecie);
+  margin: 32px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+
+.t05-pojecia {
+  max-width: var(--w-zdjecie);
+  margin: 24px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════════════════════════════════════════════════════════════
+   T06 — TRIPTYCH
+   3 zdjęcia w rzędzie (33/33/33) + tekst pod
+   "Najpierw obraz. Potem komentarz."
+   ════════════════════════════════════════════════════════════ */
+.t06-triptych {
+  margin-bottom: var(--o-sekcja);
+}
+
+.t06-tytul {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 400;
+  margin: 0 auto 56px;
+  max-width: var(--w-tekst);
+  padding: 0 24px;
+}
+
+.t06-grid {
+  max-width: var(--w-zdjecie);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--o-zdjecia);
+}
+
+.t06-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  aspect-ratio: 3/4;
+}
+
+.t06-podpis {
+  max-width: var(--w-zdjecie);
+  margin: var(--o-zdjecie-podpis) auto var(--o-podpis-tekst);
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+
+.t06-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 21px;
+  line-height: 1.75;
+}
+
+.t06-pojecia {
+  max-width: var(--w-tekst);
+  margin: 48px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════════════════════════════════════════════════════════════
+   T07 — MOMENT
+   Duże zdjęcie 75% wyśrodkowane + cytat pod
+   "moment zatrzymania"
+   ════════════════════════════════════════════════════════════ */
+.t07-moment {
+  margin-bottom: var(--o-sekcja);
+  text-align: center;
+}
+
+.t07-img-wrap {
+  max-width: 75%;
+  margin: 0 auto;
+}
+
+.t07-img-wrap img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.t07-podpis {
+  margin-top: var(--o-zdjecie-podpis);
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--podpis);
+  font-style: italic;
+}
+
+.t07-cytat {
+  max-width: var(--w-tekst-w);
+  margin: 80px auto 0;
+  padding: 0 24px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--tekst-jasny);
+  text-align: center;
+  letter-spacing: -0.005em;
+}
+
+.t07-cytat-autor {
+  margin-top: 16px;
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pojecia);
+}
+
+/* ════════════════════════════════════════════════════════════
+   T08 — ROZKŁADÓWKA
+   foto / tekst / foto / tekst naprzemiennie
+   "jak rozkładówka książki"
+   ════════════════════════════════════════════════════════════ */
+.t08-rozkladowka {
+  margin-bottom: var(--o-sekcja);
+}
+
+.t08-tytul {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 400;
+  margin: 0 auto 56px;
+  max-width: var(--w-tekst);
+  padding: 0 24px;
+}
+
+.t08-blok {
+  margin-bottom: 80px;
+}
+
+.t08-blok:last-child {
+  margin-bottom: 0;
+}
+
+.t08-blok-img {
+  width: 100%;
+  max-width: var(--w-zdjecie);
+  margin: 0 auto 40px;
+  display: block;
+  height: auto;
+}
+
+.t08-blok-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 21px;
+  line-height: 1.75;
+}
+
+.t08-pojecia {
+  max-width: var(--w-tekst);
+  margin: 48px auto 0;
+  padding: 0 24px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--pojecia);
+  text-transform: uppercase;
+}
+
+/* ════════════════════════════════════════════════════════════
+   T09 — OUTRO
+   Zakończenie, sam tekst w wąskiej kolumnie
+   ════════════════════════════════════════════════════════════ */
+.t09-outro {
+  margin-bottom: var(--o-sekcja);
+  position: relative;
+}
+
+.t09-outro::before {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 1px;
+  background: var(--linia);
+  margin: 0 auto 80px;
+}
+
+.t09-outro-tekst {
+  max-width: var(--w-tekst);
+  margin: 0 auto;
+  padding: 0 24px;
+  font-size: 22px;
+  line-height: 1.7;
+}
+
+.t09-outro-tekst p:first-child {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 28px;
+  color: var(--tekst-jasny);
+  margin-bottom: 40px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   T10 — POWIĄZANIA
+   2 kolumny: Pojęcia | Artyści
+   "Odkrywaj dalej" — przejście przez ideę
+   ════════════════════════════════════════════════════════════ */
+.t10-powiazania {
+  margin-bottom: 120px;
+  padding-top: 80px;
+  border-top: 1px solid var(--linia);
+}
+
+.t10-tytul {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 80px;
+  padding: 0 24px;
+}
+
+.t10-grid {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 96px;
+}
+
+.t10-kolumna h3 {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pojecia);
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--linia);
+}
+
+.t10-kolumna ul {
+  list-style: none;
+}
+
+.t10-kolumna li {
+  margin-bottom: 16px;
+}
+
+.t10-kolumna a {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  border-bottom: none;
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s;
+}
+
+.t10-kolumna a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--akcent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.t10-kolumna a:hover {
+  color: var(--akcent);
+}
+
+.t10-kolumna a:hover::after {
+  transform: scaleX(1);
+}
+
+.t10-kolumna .opis {
+  display: block;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--pojecia);
+  margin-top: 4px;
+}
+
+/* ─── STOPKA NOTATKI ─────────────────────────────────────── */
+.stopka {
+  border-top: 1px solid var(--linia);
+  padding: 64px 24px 80px;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--podpis);
+  letter-spacing: 0.05em;
+}
+
+.stopka-meta {
+  margin-bottom: 16px;
+}
+
+.stopka-meta span {
+  display: inline-block;
+  margin: 0 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSYWNOŚĆ — Mobile
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body { font-size: 18px; }
+  
+  :root {
+    --o-sekcja: 80px;
+    --o-podpis-tekst: 32px;
+  }
+  
+  .t01-hero {
+    height: 75vh;
+    min-height: 500px;
+  }
+  
+  .t01-hero-tekst {
+    bottom: 48px;
+    padding: 0 24px;
+  }
+  
+  .t02-intro-tekst {
+    font-size: 18px;
+  }
+  
+  .t04-tekst,
+  .t06-tekst,
+  .t08-blok-tekst {
+    font-size: 18px;
+  }
+  
+  /* T04 — para zdjęć na mobile pionowo */
+  .t04-para-zdjec {
+    grid-template-columns: 1fr;
+  }
+  
+  /* T05 — pionowe + tekst na mobile pionowo */
+  .t05-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .t05-grid-tekst {
+    padding-top: 0;
+  }
+  
+  /* T06 — triptych na mobile 1 kolumna */
+  .t06-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* T07 — moment na mobile pełna szerokość */
+  .t07-img-wrap {
+    max-width: 100%;
+  }
+  
+  .t07-cytat {
+    margin-top: 48px;
+    font-size: 22px;
+  }
+  
+  /* T10 — powiązania na mobile 1 kolumna */
+  .t10-grid {
+    grid-template-columns: 1fr;
+    gap: 64px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PLACEHOLDER OBRAZÓW — szare prostokąty z opisem
+   (Gdy podmienisz na prawdziwe zdjęcia z Berna, usuwasz tę sekcję)
+   ═══════════════════════════════════════════════════════════ */
+.placeholder-img {
+  background: linear-gradient(135deg, #d4cfc4 0%, #b8b2a3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.85);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 24px;
+  aspect-ratio: 16/10;
+  position: relative;
+}
+
+.placeholder-img::before {
+  content: '';
+  position: absolute;
+  inset: 16px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.placeholder-img.pionowe {
+  aspect-ratio: 3/4;
+}
+
+.placeholder-img.panorama {
+  aspect-ratio: 21/9;
+}
+
+.placeholder-img.kwadrat {
+  aspect-ratio: 1;
+}
+
+/* Hero placeholder specjalny — symuluje zdjęcie krajobrazu */
+.t01-hero .placeholder-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  background: linear-gradient(180deg, 
+    #6b7a8a 0%, 
+    #8a9aa8 30%, 
+    #a8b5be 60%, 
+    #c4ccd0 100%);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T01 — HERO
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t01-hero">
+  <div class="placeholder-img">
+    PLACEHOLDER: zdjęcie hero — strona 11 PDF<br>
+    panoramiczne, falujące dachy Zentrum Paul Klee
+  </div>
+  <div class="t01-hero-tekst">
+    <span class="t01-hero-nadtytul">Notatki ESTA · czerwiec 2026</span>
+    <h1 class="t01-hero-tytul">Konstrukcja i rytm</h1>
+    <p class="t01-hero-podtytul">Notatki z Zentrum Paul Klee w Bernie</p>
+  </div>
+  <div class="t01-hero-podpis">Fot. Tadeusz Stapowicz</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T02 — INTRO
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t02-intro">
+  <div class="t02-intro-tekst">
+    <p>Kiedy planowałem wizytę w Centrum Paula Klee w Bernie, głównym powodem była wystawa Kurta Schwittersa. Nie była to przypadkowa decyzja.</p>
+    
+    <p>Kilka lat wcześniej w Galerii ESTA pokazaliśmy wystawę Natalii Brandt „Spóźnione rozmowy z Kurtem Schwittersem". Była to jedna z tych wystaw, które zostają w pamięci na długo i które nie kończą się wraz z demontażem prac.</p>
+    
+    <p>Dopiero później okazało się, że równie silnym doświadczeniem będzie dla mnie sam budynek zaprojektowany przez Renzo Piano. Są miejsca, które ogląda się jak budynki. Są też takie, które odbiera się jak krajobraz.</p>
+  </div>
+  
+  <div class="t02-intro-pojecia">
+    rytm · powtórzenie · układ · relacja
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T04 — TEKST_MIĘDZY (sekcja KRAJOBRAZ)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t04-tekst-miedzy">
+  <h2 class="t04-tytul-sekcji">Krajobraz</h2>
+  
+  <div class="kolumna-zdjecie">
+    <div class="placeholder-img panorama">
+      PLACEHOLDER: strona 10 PDF<br>
+      duże zdjęcie krajobrazowe
+    </div>
+  </div>
+  
+  <p class="t04-podpis-mini" style="margin-top: 12px;">
+    Architektura nie jako dominanta, lecz jako część krajobrazu.
+  </p>
+  
+  <div class="t04-tekst" style="margin-top: 64px;">
+    <p>Najbardziej zaskoczyło mnie to, że budynek praktycznie nie kończy się w żadnym konkretnym miejscu. Patrząc z różnych stron trudno powiedzieć, gdzie kończy się wzgórze, a zaczyna architektura.</p>
+    
+    <p>Przy dobrej pogodzie pewnie wygląda to inaczej. Trafiłem na dzień z niskimi chmurami i lekkim deszczem. Paradoksalnie chyba właśnie dzięki temu budynek pokazał swój charakter. Nie wyglądał jak ikona architektury. Wyglądał jak część krajobrazu.</p>
+  </div>
+  
+  <div class="t04-para-zdjec">
+    <div class="placeholder-img">
+      strona 12 PDF<br>
+      detal terenu
+    </div>
+    <div class="placeholder-img">
+      strona 1 PDF<br>
+      inny widok
+    </div>
+  </div>
+  
+  <div class="t04-pojecia">
+    krajobraz · linia · rytm · układ
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T05 — PIONOWE_OBOK (sekcja RYTM)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t05-pionowe-obok">
+  <div class="t05-grid">
+    <div class="placeholder-img pionowe">
+      PLACEHOLDER: strona 7 PDF<br>
+      pionowe zdjęcie powtarzającej się<br>
+      konstrukcji
+    </div>
+    
+    <div class="t05-grid-tekst">
+      <h2>Rytm</h2>
+      
+      <p>Spacerując wokół budynku co chwilę łapałem się na tym samym. Patrzyłem nie na całość, ale na powtarzające się elementy. Linie. Podziały. Łuki. Kolejne fragmenty konstrukcji.</p>
+      
+      <p>Ten rytm pojawia się wszędzie. Nie jest nachalny. Nie dominuje. Ale cały czas porządkuje sposób patrzenia.</p>
+      
+      <p>Pomyślałem wtedy, że dokładnie z tym samym spotykam się od lat w pracach Wandy Gołkowskiej czy Zbigniewa Gostomskiego.</p>
+    </div>
+  </div>
+  
+  <p class="t05-podpis">
+    Powtórzenie nie jest tu ornamentem. Jest zasadą porządkującą przestrzeń.
+  </p>
+  
+  <div class="t05-pojecia">
+    rytm · powtórzenie · system · relacja
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T06 — TRIPTYCH (sekcja KONSTRUKCJA)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t06-triptych">
+  <h2 class="t06-tytul">Konstrukcja</h2>
+  
+  <div class="t06-grid">
+    <div class="placeholder-img pionowe">
+      strona 8 PDF<br>cięgna<br>konstrukcyjne
+    </div>
+    <div class="placeholder-img pionowe">
+      strona 9 PDF<br>słup stalowy<br>+ przeszklenie
+    </div>
+    <div class="placeholder-img pionowe">
+      strona 13 PDF<br>detal<br>połączenia
+    </div>
+  </div>
+  
+  <p class="t06-podpis">
+    Konstrukcja staje się językiem budynku.
+  </p>
+  
+  <div class="t06-tekst">
+    <p>Najwięcej zdjęć zrobiłem chyba nie samemu budynkowi, ale jego detalom. Linkom. Połączeniom. Przeszkleniom. Elementom, których większość odwiedzających pewnie nawet nie zauważa.</p>
+    
+    <p>Zawsze interesowało mnie to, jak rzeczy są zrobione. W sztuce jest podobnie. Często bardziej interesuje mnie logika pracy niż sam efekt końcowy.</p>
+    
+    <p>Konstrukcja nie została ukryta. Stała się częścią opowieści o budynku. Każdy element wydaje się konieczny. Nic nie sprawia wrażenia dekoracji dodanej po fakcie.</p>
+  </div>
+  
+  <div class="t06-pojecia">
+    konstrukcja · detal · system · układ
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T07 — MOMENT (sekcja PRZESTRZEŃ — schody)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t07-moment">
+  <div class="t07-img-wrap">
+    <div class="placeholder-img" style="aspect-ratio: 3/4;">
+      PLACEHOLDER: strona 19 PDF<br>
+      schody z postacią człowieka<br>
+      (zdjęcie kluczowe — moment zatrzymania)
+    </div>
+  </div>
+  
+  <p class="t07-podpis">
+    Przestrzeń jako prowadzenie widza.
+  </p>
+  
+  <blockquote class="t07-cytat">
+    „Dobra przestrzeń nie prowadzi wzroku.<br>
+    Prowadzi człowieka."
+  </blockquote>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T08 — ROZKŁADÓWKA (sekcja WNĘTRZE)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t08-rozkladowka">
+  <h2 class="t08-tytul">Wnętrze</h2>
+  
+  <div class="t08-blok">
+    <div class="kolumna-zdjecie">
+      <div class="placeholder-img panorama">
+        strona 14 PDF — wnętrze, drewno + światło
+      </div>
+    </div>
+    <div class="t08-blok-tekst" style="margin-top: 40px;">
+      <p>O jakości tego miejsca decyduje nie tylko ogólna forma budynku. Równie ważne są szczegóły: oznaczenia, przejścia, światło, materiały, sposób prowadzenia informacji, obecność książek i wydawnictw.</p>
+    </div>
+  </div>
+  
+  <div class="t08-blok">
+    <div class="kolumna-zdjecie">
+      <div class="placeholder-img panorama">
+        strona 16 PDF — przeszklenia, perspektywa
+      </div>
+    </div>
+    <div class="t08-blok-tekst" style="margin-top: 40px;">
+      <p>Profesjonalizm instytucji kultury nie polega wyłącznie na sile programu. Widać go także w tym, jak zaprojektowane są progi, szyby, kierunki ruchu, miejsca odpoczynku i punkty informacji.</p>
+      
+      <p>Detal buduje zaufanie. Jest częścią języka miejsca.</p>
+    </div>
+  </div>
+  
+  <div class="t08-pojecia">
+    detal · informacja · światło · porządek
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T03 — SOLO (sekcja SCHWITTERS jako kontekst)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t03-solo">
+  <div class="kolumna-zdjecie">
+    <h2 class="t04-tytul-sekcji" style="margin-bottom: 48px;">Schwitters jako kontekst</h2>
+    
+    <div class="placeholder-img">
+      strona 20 PDF — plakat wystawy Schwittersa
+    </div>
+  </div>
+  
+  <p class="t03-solo-podpis">
+    „Schwitters. Grenzgänger der Avantgarde" — wystawa towarzysząca w Zentrum Paul Klee.
+  </p>
+  
+  <div class="t04-tekst" style="margin-top: 64px;">
+    <p>W czasie wizyty w Zentrum Paul Klee prezentowana była wystawa poświęcona jednej z najważniejszych postaci europejskiej awangardy XX wieku.</p>
+    
+    <p>Nie rozwijam tutaj jeszcze osobnej refleksji o Schwittersie. Ten temat wymaga oddzielnej notatki. Warto jednak odnotować, że sama obecność tej wystawy w przestrzeni zaprojektowanej przez Renzo Piano stworzyła dodatkową relację: między awangardowym myśleniem o fragmencie, konstrukcji i znaku a architekturą, która również opiera się na rytmie, podziale i relacji elementów.</p>
+  </div>
+  
+  <div class="t04-pojecia">
+    fragment · awangarda · znak · konstrukcja
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T09 — OUTRO (zakończenie)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t09-outro">
+  <div class="t09-outro-tekst">
+    <p>Lubię takie miejsca. Nie dlatego, że próbują imponować. Raczej dlatego, że pozwalają spokojnie patrzeć.</p>
+    
+    <p>Po kilku godzinach spędzonych w Zentrum Paul Klee miałem poczucie, że nie oglądałem tylko muzeum. Była to również lekcja o relacji pomiędzy formą, przestrzenią i krajobrazem.</p>
+    
+    <p>A może właśnie dlatego podczas spaceru wokół budynku co jakiś czas wracały do mnie skojarzenia z artystami, którzy od lat pojawiają się w programie Galerii ESTA — o układach otwartych Wandy Gołkowskiej, systemach Zbigniewa Gostomskiego, świetle i przestrzeni Jana Chwałczyka czy współczesnych realizacjach Natalii Brandt.</p>
+    
+    <p>Bo niezależnie od tego, czy mówimy o architekturze czy sztuce, pewne pojęcia wracają nieustannie. Nie są to bezpośrednie analogie. Raczej podobny sposób myślenia o relacjach pomiędzy formą, przestrzenią i porządkiem.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     T10 — POWIĄZANIA (Odkrywaj dalej)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="t10-powiazania">
+  <h2 class="t10-tytul">Odkrywaj dalej</h2>
+  
+  <div class="t10-grid">
+    <div class="t10-kolumna">
+      <h3>Pojęcia</h3>
+      <ul>
+        <li><a href="#">rytm</a></li>
+        <li><a href="#">powtórzenie</a></li>
+        <li><a href="#">układ</a></li>
+        <li><a href="#">konstrukcja</a></li>
+        <li><a href="#">przestrzeń</a></li>
+        <li><a href="#">krajobraz</a></li>
+        <li><a href="#">detal</a></li>
+        <li><a href="#">relacja</a></li>
+      </ul>
+    </div>
+    
+    <div class="t10-kolumna">
+      <h3>Artyści</h3>
+      <ul>
+        <li>
+          <a href="#">Wanda Gołkowska</a>
+          <span class="opis">układ otwarty · system · relacja</span>
+        </li>
+        <li>
+          <a href="#">Zbigniew Gostomski</a>
+          <span class="opis">geometria · struktura · przestrzeń</span>
+        </li>
+        <li>
+          <a href="#">Jan Chwałczyk</a>
+          <span class="opis">światło · cień · projekcja</span>
+        </li>
+        <li>
+          <a href="#">Natalia Brandt</a>
+          <span class="opis">współczesna geometria · rytm · relacja</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ─── STOPKA ────────────────────────────────────────────── -->
+<footer class="stopka">
+  <div class="stopka-meta">
+    <span>Notatki ESTA</span>
+    <span>·</span>
+    <span>Berno, czerwiec 2026</span>
+    <span>·</span>
+    <span>Galeria ESTA</span>
+  </div>
+  <div>Fot. Tadeusz Stapowicz</div>
+</footer>
+
+</body>
+</html>
