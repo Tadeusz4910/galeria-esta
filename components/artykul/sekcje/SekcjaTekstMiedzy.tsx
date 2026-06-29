@@ -38,6 +38,14 @@ export default function SekcjaTekstMiedzy({
       </div>
       {dane.podpis_para && <p className="t04-podpis-mini">{dane.podpis_para}</p>}
 
+      {(dane.akapity_pod ?? []).length > 0 && (
+        <div className="t04-tekst" style={{ marginTop: 'var(--o-podpis-tekst)' }}>
+          {(dane.akapity_pod ?? []).map((akapit, i) => (
+            <p key={i}>{akapit}</p>
+          ))}
+        </div>
+      )}
+
       {dane.pojecia && <div className="t04-pojecia">{dane.pojecia}</div>}
     </section>
   )

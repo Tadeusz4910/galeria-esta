@@ -63,6 +63,8 @@ export interface TekstMiedzyDane {
   zdjecie_lewe: ZdjecieRef
   zdjecie_prawe: ZdjecieRef
   podpis_para?: string | null
+  /** Opcjonalne akapity pod parą zdjęć (ten sam styl co `akapity`). */
+  akapity_pod?: string[]
   pojecia?: string | null
 }
 
