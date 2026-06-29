@@ -224,7 +224,7 @@ export default async function BlogDetailPage({
         style={{ background: '#fdfcfa', color: '#1a1a1a', minHeight: '100vh' }}
       >
         <Nav active="blog" />
-        <ArtykulRender sekcje={sekcje} />
+        <ArtykulRender sekcje={sekcje} artykulId={artykul.id} />
         <footer
           style={{
             padding: '64px 32px 80px',

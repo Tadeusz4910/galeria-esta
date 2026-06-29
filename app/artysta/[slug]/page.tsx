@@ -94,6 +94,20 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
     .order('created_at', { ascending: false })
     .limit(1)
 
+  // Notatki powiazane WSTECZNIE z artykuly_artysci -> artykuly (tylko opublikowane).
+  // targi_artysci nie istnieje w bazie -> targow nie pokazujemy (pomijamy bez bledu).
+  // Wystawy i Prace maja juz wlasne sekcje wyzej, wiec ich tu nie dublujemy.
+  const { data: notatkiRel } = await supabase
+    .from('artykuly_artysci')
+    .select('artykul:artykuly(slug, tytul, status_publiczny, data_publikacji)')
+    .eq('artysta_id', a.id)
+  const notatki = (notatkiRel || [])
+    .map((r: any) => r.artykul)
+    .filter((n: any) => n && n.status_publiczny === 'opublikowany')
+    .sort((x: any, y: any) =>
+      (y.data_publikacji || '').localeCompare(x.data_publikacji || '')
+    )
+
   const C = '"Cormorant Garamond", Georgia, serif'
   const I = '"Instrument Sans", sans-serif'
 
@@ -337,6 +351,23 @@ export default async function ArtystaPage({ params }: { params: Promise<{ slug: 
                   )
                 })}
               </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ZOBACZ TEZ — notatki powiazane (wstecznie z artykuly_artysci) */}
+      {notatki.length > 0 && (
+        <section style={{ padding:'80px 40px',borderBottom:'1px solid #ebebeb' }}>
+          <div style={{ display:'grid',gridTemplateColumns:'200px 1fr',gap:'80px' }}>
+            <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',color:'#999' }}>Zobacz też</p>
+            <div>
+              {notatki.map((n: any, i: number) => (
+                <a key={i} href={`/blog/${n.slug}`} className="wystawa-row" style={{ display:'grid',gridTemplateColumns:'1fr auto',gap:'24px',alignItems:'center' }}>
+                  <p style={{ fontFamily:C,fontSize:'22px',fontWeight:400 }}>{n.tytul}</p>
+                  <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.12em',textTransform:'uppercase',color:'#bbb',whiteSpace:'nowrap' }}>&rarr; Notatka</p>
+                </a>
+              ))}
             </div>
           </div>
         </section>

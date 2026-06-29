@@ -82,7 +82,7 @@ async function pobierzMedia(ids: string[]): Promise<MediaMap> {
   return mapa
 }
 
-function renderSekcja(s: SekcjaArtykulu, media: MediaMap) {
+function renderSekcja(s: SekcjaArtykulu, media: MediaMap, artykulId: string) {
   switch (s.typ_sekcji) {
     case 't01_hero':
       return <SekcjaHero dane={s.dane} media={media} />
@@ -103,7 +103,7 @@ function renderSekcja(s: SekcjaArtykulu, media: MediaMap) {
     case 't09_outro':
       return <SekcjaOutro dane={s.dane} />
     case 't10_powiazania':
-      return <SekcjaPowiazania dane={s.dane} />
+      return <SekcjaPowiazania dane={s.dane} artykulId={artykulId} />
     default:
       return null
   }
@@ -111,8 +111,10 @@ function renderSekcja(s: SekcjaArtykulu, media: MediaMap) {
 
 export default async function ArtykulRender({
   sekcje,
+  artykulId,
 }: {
   sekcje: SekcjaArtykulu[]
+  artykulId: string
 }) {
   const uporzadkowane = [...sekcje].sort((a, b) => a.kolejnosc - b.kolejnosc)
   const media = await pobierzMedia(zbierzIds(uporzadkowane))
@@ -120,7 +122,7 @@ export default async function ArtykulRender({
   return (
     <div className="esta-notatka">
       {uporzadkowane.map((s) => (
-        <div key={s.id}>{renderSekcja(s, media)}</div>
+        <div key={s.id}>{renderSekcja(s, media, artykulId)}</div>
       ))}
     </div>
   )
