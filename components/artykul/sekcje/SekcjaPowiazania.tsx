@@ -15,12 +15,6 @@ function flipImieNazwisko(raw: string | null): string {
   return parts.length === 2 ? `${parts[1]} ${parts[0]}` : n
 }
 
-// Krótki opis programowy = pierwsze zdanie z dlaczego_wazny profilu artysty.
-function pierwszeZdanie(s: string | null): string {
-  if (!s) return ''
-  return s.trim().split(/(?<=[.!?])\s/)[0] || ''
-}
-
 export default async function SekcjaPowiazania({
   dane,
   artykulId,
@@ -28,7 +22,7 @@ export default async function SekcjaPowiazania({
   dane: PowiazaniaDane
   artykulId: string
 }) {
-  const [pojeciaRes, artysciRes] = await Promise.all([
+  const [pojeciaRes, artysciRes, wystawyRes] = await Promise.all([
     supabase
       .from('pojecia_artykuly')
       .select('pojecie:pojecia(id, slug, nazwa)')
@@ -36,8 +30,13 @@ export default async function SekcjaPowiazania({
     supabase
       .from('artykuly_artysci')
       .select(
-        'kolejnosc, artysta:artysci(id, nazwisko_i_imie, url_artysty, dlaczego_wazny)'
+        'kolejnosc, opis_w_notatce, artysta:artysci(id, nazwisko_i_imie, url_artysty)'
       )
+      .eq('artykul_id', artykulId)
+      .order('kolejnosc', { ascending: true }),
+    supabase
+      .from('artykuly_wystawy')
+      .select('kolejnosc, wystawa:wystawy(id, tytul, url_wystawy)')
       .eq('artykul_id', artykulId)
       .order('kolejnosc', { ascending: true }),
   ])
@@ -47,15 +46,24 @@ export default async function SekcjaPowiazania({
     .filter(Boolean) as { id: string; slug: string; nazwa: string }[]
 
   const artysci = ((artysciRes.data ?? []) as any[])
-    .map((r) => r.artysta)
+    .filter((r) => r.artysta)
+    .map((r) => ({
+      id: r.artysta.id as string,
+      nazwisko_i_imie: (r.artysta.nazwisko_i_imie ?? null) as string | null,
+      url_artysty: (r.artysta.url_artysty ?? null) as string | null,
+      opis: ((r.opis_w_notatce ?? '') as string).trim(),
+    }))
+
+  const wystawy = ((wystawyRes.data ?? []) as any[])
+    .map((r) => r.wystawa)
     .filter(Boolean) as {
     id: string
-    nazwisko_i_imie: string | null
-    url_artysty: string | null
-    dlaczego_wazny: string | null
+    tytul: string | null
+    url_wystawy: string | null
   }[]
 
-  if (pojecia.length === 0 && artysci.length === 0) return null
+  if (pojecia.length === 0 && artysci.length === 0 && wystawy.length === 0)
+    return null
 
   return (
     <section className="t10-powiazania">
@@ -83,7 +91,7 @@ export default async function SekcjaPowiazania({
             <ul>
               {artysci.map((a) => {
                 const nazwa = flipImieNazwisko(a.nazwisko_i_imie)
-                const opis = pierwszeZdanie(a.dlaczego_wazny)
+                const opis = a.opis
                 return (
                   <li key={a.id}>
                     {a.url_artysty ? (
@@ -95,6 +103,23 @@ export default async function SekcjaPowiazania({
                   </li>
                 )
               })}
+            </ul>
+          </div>
+        )}
+
+        {wystawy.length > 0 && (
+          <div className="t10-kolumna">
+            <h3>Wystawy</h3>
+            <ul>
+              {wystawy.map((w) => (
+                <li key={w.id}>
+                  {w.url_wystawy ? (
+                    <Link href={`/wystawa/${w.url_wystawy}`}>{w.tytul}</Link>
+                  ) : (
+                    <span>{w.tytul}</span>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
         )}

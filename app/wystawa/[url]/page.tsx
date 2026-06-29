@@ -35,6 +35,18 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
     .select('typ, tytul, url, opis, zrodlo')
     .eq('wystawa_id', w.id)
 
+  // Notatki powiazane WSTECZNIE z artykuly_wystawy -> artykuly (tylko opublikowane).
+  const { data: notatkiRel } = await supabase
+    .from('artykuly_wystawy')
+    .select('artykul:artykuly(slug, tytul, status_publiczny, data_publikacji)')
+    .eq('wystawa_id', w.id)
+  const notatki = (notatkiRel || [])
+    .map((r: any) => r.artykul)
+    .filter((n: any) => n && n.status_publiczny === 'opublikowany')
+    .sort((x: any, y: any) =>
+      (y.data_publikacji || '').localeCompare(x.data_publikacji || '')
+    )
+
   const C = '"Cormorant Garamond", Georgia, serif'
   const I = '"Instrument Sans", sans-serif'
 
@@ -163,6 +175,21 @@ export default async function WystawaPage({ params }: { params: Promise<{ url: s
                 <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.16em',textTransform:'uppercase',color:'#999',marginBottom:'8px' }}>{m.typ}</p>
                 <p style={{ fontFamily:C,fontSize:'18px',fontWeight:400,marginBottom:'4px' }}>{m.tytul}</p>
                 {m.zrodlo && <p style={{ fontFamily:I,fontSize:'12px',color:'#888' }}>{m.zrodlo}</p>}
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* NOTATKI — wstecznie z artykuly_wystawy */}
+      {notatki.length > 0 && (
+        <section style={{ padding:'80px 40px',borderTop:'1px solid #ebebeb' }}>
+          <h2 style={{ fontFamily:C,fontSize:'28px',fontWeight:400,marginBottom:'48px' }}>Piszemy o tej wystawie</h2>
+          <div>
+            {notatki.map((n: any, i: number) => (
+              <a key={i} href={`/blog/${n.slug}`} className="artysta-link" style={{ display:'grid',gridTemplateColumns:'1fr auto',gap:'24px',alignItems:'center',padding:'24px 0',borderBottom:'1px solid #ebebeb',borderTop:i===0?'1px solid #ebebeb':'none' }}>
+                <p style={{ fontFamily:C,fontSize:'22px',fontWeight:400 }}>{n.tytul}</p>
+                <p style={{ fontFamily:I,fontSize:'10px',letterSpacing:'.12em',textTransform:'uppercase',color:'#bbb',whiteSpace:'nowrap' }}>&rarr; Notatka</p>
               </a>
             ))}
           </div>

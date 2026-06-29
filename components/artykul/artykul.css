@@ -517,7 +517,8 @@
   margin: 0 auto;
   padding: 0 24px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* auto-fit: 2 grupy → 2 kolumny, 3 grupy (Pojęcia/Artyści/Wystawy) → 3 */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 96px;
 }
 .esta-notatka .t10-kolumna h3 {
