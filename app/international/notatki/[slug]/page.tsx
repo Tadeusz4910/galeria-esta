@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Nav from '@/components/Nav'
+import NavInternational from '@/components/NavInternational'
 import ArtykulRender from '@/components/artykul/ArtykulRender'
 import type { SekcjaArtykulu } from '@/lib/types-artykul'
 
@@ -131,7 +131,7 @@ export default async function InternationalNotePage({
 
   return (
     <main style={{ background: '#fdfcfa', color: '#1a1a1a', minHeight: '100vh' }}>
-      <Nav />
+      <NavInternational active="notatki" />
 
       {/* Sekcje T01–T10 (treść z JSONB; warstwa _en obejmuje na razie metadane/tytuł).
           ArtykulRender reużyty 1:1 z blogiem. */}

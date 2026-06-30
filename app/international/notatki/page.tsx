@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
-import Nav from '@/components/Nav'
+import NavInternational from '@/components/NavInternational'
 
 export const revalidate = 60
 
@@ -151,7 +151,7 @@ export default async function InternationalNotesPage() {
         }
       `}</style>
 
-      <Nav />
+      <NavInternational active="notatki" />
 
       {/* HERO */}
       <section className="intl-hero" aria-label="Notes — International Program">

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import Nav from '@/components/Nav'
+import NavInternational from '@/components/NavInternational'
 
 export const revalidate = 60
 
@@ -50,7 +50,7 @@ export default function InternationalPage() {
         .intl-note-link:hover { opacity: .6; }
       `}</style>
 
-      <Nav />
+      <NavInternational />
 
       {/* HERO — tytuł działu po angielsku (statement dopiszemy później) */}
       <section className="intl-hero">
