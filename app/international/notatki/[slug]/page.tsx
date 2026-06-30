@@ -26,7 +26,13 @@ type DbArtykul = {
   autor: string | null
   czas_czytania_min: number | null
   sekcje:
-    | { id: string; kolejnosc: number; typ_sekcji: string; dane: unknown }[]
+    | {
+        id: string
+        kolejnosc: number
+        typ_sekcji: string
+        dane: unknown
+        dane_en: unknown
+      }[]
     | null
 }
 
@@ -52,6 +58,13 @@ function formatEnDate(iso: string | null): string {
   } catch {
     return ''
   }
+}
+
+// dane_en jest "puste", gdy null/undefined lub pusty obiekt {} → wtedy fallback na PL `dane`.
+function isEmptyDane(d: unknown): boolean {
+  if (d == null) return true
+  if (typeof d === 'object') return Object.keys(d as object).length === 0
+  return false
 }
 
 export async function generateMetadata({
@@ -99,7 +112,7 @@ export default async function InternationalNotePage({
       id, slug, tytul, tytul_en, opis_krotki, lead_en, img_cover,
       data_publikacji, created_at, status_publiczny, int_publiczne,
       kategoria, typ_artykulu, autor, czas_czytania_min,
-      sekcje:artykuly_sekcje(id, kolejnosc, typ_sekcji, dane)
+      sekcje:artykuly_sekcje(id, kolejnosc, typ_sekcji, dane, dane_en)
     `
     )
     .eq('slug', slug)
@@ -112,9 +125,17 @@ export default async function InternationalNotePage({
 
   const artykul = data as unknown as DbArtykul
 
-  const sekcje = ((artykul.sekcje ?? []) as unknown as SekcjaArtykulu[])
+  // Per sekcja: użyj dane_en (treść EN) jeśli niepuste, inaczej fallback na dane (PL).
+  // Wybór następuje TUTAJ — ArtykulRender i komponenty T01–T10 dostają gotowy `dane`.
+  const sekcje = (artykul.sekcje ?? [])
     .slice()
     .sort((a, b) => a.kolejnosc - b.kolejnosc)
+    .map((s) => ({
+      id: s.id,
+      kolejnosc: s.kolejnosc,
+      typ_sekcji: s.typ_sekcji,
+      dane: isEmptyDane(s.dane_en) ? s.dane : s.dane_en,
+    })) as unknown as SekcjaArtykulu[]
 
   const dataEn = formatEnDate(artykul.data_publikacji ?? artykul.created_at)
   const kategoria = artykul.kategoria ?? artykul.typ_artykulu
