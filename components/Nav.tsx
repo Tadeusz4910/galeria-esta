@@ -59,13 +59,18 @@ export default function Nav({ active }: { active?: string }) {
             {item.label}
           </a>
         ))}
-        <a href="#" className="esta-nav-link" style={{
+        <span style={{
           fontFamily: I, fontSize: '10px', letterSpacing: '.16em',
-          textTransform: 'uppercase', textDecoration: 'none',
-          color: '#111', opacity: 0.45,
+          textTransform: 'uppercase', color: '#111',
+          display: 'inline-flex', gap: '4px', alignItems: 'center',
         }}>
-          PL / EN
-        </a>
+          <span style={{ opacity: 1 }}>PL</span>
+          <span style={{ opacity: 0.45 }}>/</span>
+          <a href="/international" className="esta-nav-link" style={{
+            textDecoration: 'none', color: '#111', opacity: 0.45,
+            transition: 'opacity .2s',
+          }}>EN</a>
+        </span>
       </div>
 
       {/* Hamburger mobile */}
@@ -127,13 +132,18 @@ export default function Nav({ active }: { active?: string }) {
             {item.label}
           </a>
         ))}
-        <a href="#" onClick={() => setOpen(false)} style={{
+        <span style={{
           marginTop: '24px', fontFamily: I, fontSize: '12px',
           letterSpacing: '.18em', textTransform: 'uppercase',
-          textDecoration: 'none', color: '#111', opacity: 0.5,
+          color: '#111',
+          display: 'inline-flex', gap: '6px', alignItems: 'center',
         }}>
-          PL / EN
-        </a>
+          <span style={{ opacity: 1 }}>PL</span>
+          <span style={{ opacity: 0.5 }}>/</span>
+          <a href="/international" onClick={() => setOpen(false)} style={{
+            textDecoration: 'none', color: '#111', opacity: 0.5,
+          }}>EN</a>
+        </span>
       </div>
 
       <style>{`
